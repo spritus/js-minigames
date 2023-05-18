@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Bubbles</title>
+</head>
+<style>
+	body{
+		background-color: dimgray;
+		font-family: "Arial Narrow";
+	}
+
+	#screen{
+		position: relative;
+		width: 600px;
+		height: 780px;
+		background-color: black;
+		background-image: url(bg.jpg);
+		border: solid 4px white;
+		margin: 40px auto;
+		overflow: hidden;
+		cursor: pointer;
+		color: white;
+		font-weight: bold;
+		font-size: 24px;	
+	}
+
+	.bubble{
+		position: absolute;
+		width: 60px;
+		height: 60px;
+		border-radius: 100%;
+		filter: brightness(150%) opacity(1);
+	}
+
+	.color1{
+		background: radial-gradient(100% 115% at 25% 25%, #fff, transparent 45%), radial-gradient(15% 15% at 75% 75%, #d9eff7, transparent 45%), radial-gradient(100% 100% at 50% 25%, transparent, #e7771b 98%);
+	}
+
+	.color2{
+		background: radial-gradient(100% 115% at 25% 25%, #fff, transparent 45%), radial-gradient(15% 15% at 75% 75%, #d9eff7, transparent 45%), radial-gradient(100% 100% at 50% 25%, transparent, #841be7 98%);
+	}
+
+	.color3{
+		background: radial-gradient(100% 115% at 25% 25%, #fff, transparent 45%), radial-gradient(15% 15% at 75% 75%, #d9eff7, transparent 45%), radial-gradient(100% 100% at 50% 25%, transparent, #1be7cc 98%);
+	}
+
+	.color4{
+		background: radial-gradient(100% 115% at 25% 25%, #fff, transparent 45%), radial-gradient(15% 15% at 75% 75%, #d9eff7, transparent 45%), radial-gradient(100% 100% at 50% 25%, transparent, #e71b70 98%);
+	}
+
+	.color5{
+		background: radial-gradient(100% 115% at 25% 25%, #fff, transparent 45%), radial-gradient(15% 15% at 75% 75%, #d9eff7, transparent 45%), radial-gradient(100% 100% at 50% 25%, transparent, #22e71b 98%);
+	}
+
+	.color6{
+		background: radial-gradient(100% 115% at 25% 25%, #fff, transparent 45%), radial-gradient(15% 15% at 75% 75%, #d9eff7, transparent 45%), radial-gradient(100% 100% at 50% 25%, transparent, #1b62e7 98%);
+	}
+
+	#bar{
+		position: absolute;
+		width: calc(100% - 60px);
+		padding: 10px 30px;
+		z-index: 100;
+		text-align: right;
+	}
+
+	#message{
+		position: absolute;
+		width: calc(100% - 60px);
+		top: -1000px;
+		text-align: center;
+		z-index: 100;
+		padding: 30px;
+		background-color: rgba(255,0,0,0.3);
+	}
+
+	#message h3{
+		overflow: hidden;
+		white-space: nowrap;
+		display: inline-block;
+		margin: 0 auto;
+		animation: typing 3.5s steps(40, end);
+	}
+
+	@keyframes come{
+		from {top: -1000px}
+		to {top: 35%;}
+	}
+
+	@keyframes go{
+		from {top: 35%;}
+		to {top: -1000px;}
+	}
+
+	@keyframes blink{
+		65% {opacity: 1; filter: brightness(300%)}
+		100% {opacity: 0; filter: brightness(100%)}
+	}
+
+</style>
+<body>
+	<div id="screen">
+		<div id="bar">0</div>
+		<div id="message"></div>
+	</div>
+</body>
+
+<script>
+	const SW=600,		// Oyun alani genisligi
+			SH=800,		// Oyun alani yuksekligi
+			OW=60,		// Genel nesne buyuklugu
+			GW=10,
+			GH=13;
+	var screen, bar, message, point=0;	// Ekran parcalari
+	var count=0;		// Oyun genel sayaci
+	var anim=0, ready=true;	// Animasyon calisiyor mu?
+	var BOARD=[];		// Oyun alani
+
+	window.onload=function(){
+		screen=document.getElementById("screen");
+		bar=document.getElementById("bar");
+		message=document.getElementById("message");
+
+		function showMsg(msg){
+			message.innerHTML=msg;
+			message.style.animation="come 1s ease-out forwards";
+			message.onclick=(e)=>{
+				e.stopPropagation();
+				message.style.animation="go 1s ease-in forwards";
+			}
+		}
+
+		class bubble{
+			constructor(which, x, y){
+				this.which=which;
+				this.x=x;
+				this.y=y;
+				this.ry=-50;
+				this.g=1;
+				this.body=document.createElement("div");
+				screen.appendChild(this.body);
+				this.body.onclick=()=>{
+					var blops=[];
+					var n=0;
+					function destroy(x, y, w){
+						if(w>0 && x>=0 && x<GW && y>=0 && y<GH && BOARD[x+y*GW].which==w && !blops.includes(x+y*GW)){
+							n++;
+							if(n>1) setTimeout(()=>{ BOARD[x+y*GW].remove(); }, n*70);
+							blops.push(x+y*GW);
+							destroy(x-1, y, w);
+							destroy(x+1, y, w);
+							destroy(x, y-1, w);
+							destroy(x, y+1, w);
+						}
+					}
+					destroy(this.x, this.y, this.which);
+					if(n>1) this.remove();
+					if(n>5){
+						point+=n;
+						bar.innerText=point;
+					}
+				}
+			}
+
+			set(which, n){
+				this.which=which;
+				if(n==null) this.ry=-50;
+				else this.ry=Math.floor(n/GW)*OW;
+			}
+
+			fall(n){
+				this.body.className="bubble color"+this.which;
+				if(this.ry!=n){
+					this.g++;
+					this.ry+=this.g;
+					if(this.ry>n) this.ry=n;
+					this.body.style.top=this.ry+"px";
+					ready=false;
+				}
+				else {
+					this.g=1;
+					this.ready=true;
+					ready=true;
+				}
+			}
+
+			remove(){
+				this.body.style.animation="blink 0.01s infinite";
+				anim++;
+				
+				var blop=new Audio("blop.wav");
+				blop.play();
+				blop.remove();
+
+				setTimeout(() => {
+					this.set(0);
+					anim--;
+					this.body.style.animation="none";
+					point++;
+					bar.innerText=point;
+				}, 200);
+			}
+		}
+
+		for(var n=0; n<GW*GH; n++){
+			BOARD[n]=new bubble(0, n%GW, Math.floor(n/GW));
+			BOARD[n].ry=n*-50;
+			BOARD[n].body.style.left=(n%GW)*OW+"px";
+		}
+
+		var count=0;
+		setInterval(()=>{
+			count++;
+
+			if(count%3==0)
+				for(var n=0; n<GW*GH; n++){
+					BOARD[n].fall(Math.floor(n/GW)*OW);
+				}
+
+			if(anim>0 || !ready) return;
+
+			var over=true;
+			for(var n=GW*GH-1; n>=0; n--){
+				if(BOARD[n].which==0){
+					var a=0;
+					do{
+						a++;
+						var fnd=n%GW+GW*(Math.floor(n/GW)-a);
+					}
+					while(fnd>=0 && BOARD[fnd].which==0);
+					if(fnd>=0){
+						BOARD[n].set(BOARD[fnd].which, fnd);
+						BOARD[fnd].set(0);
+					}
+					else if(count==1) {
+						BOARD[n].set(1+Math.floor(Math.random()*3));
+						BOARD[n].ry=(GH-Math.floor(n/GW)*1.3)*-OW;
+					}
+				}
+
+				var x=n%GW, y=Math.floor(n/GW);
+				if(BOARD[n].which>0 && [x-1>=0 ? BOARD[(x-1)+y*GW].which : -1, x+1<GW ? BOARD[(x+1)+y*GW].which : -1, y-1>=0 ? BOARD[x+(y-1)*GW].which : -1, y+1<GH ? BOARD[x+(y+1)*GW].which : -1].includes(BOARD[n].which)) over=false;
+			}
+
+			if(over) showMsg("Oyun bitti<br>Puanın: "+point);
+		}, 5);
+	}
+</script>
+</html>

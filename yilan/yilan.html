@@ -1,0 +1,175 @@
+<script>
+    window.onload=function(){
+        document.body.style.backgroundColor="pink";
+        document.body.style.textAlign="center";
+        const W=40;
+        const H=40;
+        var field=[];
+
+        var pointBox=document.createElement("div");
+        document.body.appendChild(pointBox);
+        pointBox.style.color="blue";
+        pointBox.style.fontweight="bold";
+        pointBox.innerText="Puan: 0";
+        pointBox.style.marginTop="50px";
+        pointBox.style.marginBottom="10px";
+        pointBox.style.border="solid 1px blue";
+        pointBox.style.width="100px";
+        pointBox.style.display="inline-block";
+
+        var main=document.createElement("div");
+        document.body.appendChild(main);
+        main.style.position="relative";
+        main.style.margin="0 auto";
+        main.style.outline="solid 2px white";
+        main.style.width="400px";
+        main.style.overflowY="auto";
+
+        var info=document.createElement("div");
+        main.appendChild(info);
+        info.style.position="absolute";
+        info.style.width="200px";
+        info.style.height="100px";
+        info.style.top="100px";
+        info.style.left="50%";
+        info.style.marginLeft="-100px";
+        info.style.border="solid 5px white";
+        info.style.textAlign="center";
+        info.style.backgroundColor="orange";
+        info.style.color="white";
+        info.innerHTML="<br>Yılan Oyunu © 2018<br>Deniz Madyan<br>Eylül Madyan<br>Metehan Alter";
+        
+        var gameOver=document.createElement("div");
+        main.appendChild(gameOver);
+        gameOver.style.position="absolute";
+        gameOver.style.width="200px";
+        gameOver.style.height="50px";
+        gameOver.style.top="150px";
+        gameOver.style.left="50%";
+        gameOver.style.marginLeft="-100px";
+        gameOver.style.border="solid 5px white";
+        gameOver.style.textAlign="center";
+        gameOver.style.backgroundColor="black";
+        gameOver.style.color="white";
+        gameOver.innerHTML="<br>Oyun bitti!!";
+
+        var btnStart=document.createElement("button");
+        document.body.appendChild(btnStart);
+        btnStart.innerHTML="Başla";
+        btnStart.style.marginTop="20px";
+    
+        for(x=0; x<W; x++){
+            field[x]=[];
+            for(y=0; y<H; y++){
+                var box = document.createElement("div");
+                main.appendChild(box);
+                box.style.outline="solid 1px #ffc5ff";
+                box.style.width="10px";
+                box.style.height="10px";
+                box.style.float="left";
+                field[x][y]=box;
+            }
+        }
+    
+        function setBox(x,y){
+            field[y][x].style.backgroundColor="black";
+        }
+    
+        function resetBox(x,y){
+            field[y][x].style.backgroundColor="transparent";
+        }
+
+        function setFood(){
+            var fx=Math.round(Math.random()*W);
+            var fy=Math.round(Math.random()*H);
+            if(field[fy][fx].style.backgroundColor=="transparent")
+                field[fy][fx].style.backgroundColor="red";
+            else
+                setFood();
+        }
+    
+        function clearField(){
+            for(x=0; x<W; x++)
+                for(y=0; y<H; y++)
+                    resetBox(x,y);
+        }
+    
+        var anim;
+        function playAnim(){
+            info.style.display="block";
+            gameOver.style.display="none";
+            anim=setInterval(function(){
+                for(x=0; x<W; x++)
+                    for(y=0; y<H; y++)
+                        if(Math.random()<0.5) setBox(x,y);
+                        else resetBox(x,y);
+            }, 50);
+        }
+    
+        playAnim();
+    
+        var game;
+        btnStart.onclick=function(){
+            clearInterval(anim);
+            clearField();
+
+            if(game!=null) clearInterval(game);
+            
+            var rot=0;
+            var xPos=W/2, yPos=H/2;
+            var qxPos=xPos, qyPos=yPos;
+            var oxPos, oyPos;
+            que=[];
+            q=5;
+            f=0;
+            point=0;
+
+            setFood();
+            pointBox.innerText="Puan: 0";
+            info.style.display="none";
+            gameOver.style.display="none";
+            
+            game=setInterval(function(){
+
+                switch(rot){
+                    case 0: xPos--; break;
+                    case 1: yPos--; break;
+                    case 2: xPos++; break;
+                    case 3: yPos++; break;
+                }
+                
+                if(xPos<0 || xPos>W || yPos<0 || yPos>H || field[yPos][xPos].style.backgroundColor=="black") {
+                    gameOver.style.display="block";
+                    clearInterval(game);
+                    setTimeout(playAnim, 2000);
+                }
+
+                if(field[yPos][xPos].style.backgroundColor=="red") {
+                    setFood();
+                    q+=3;
+                    point++;
+                    pointBox.innerText="Puan: "+point;
+                }
+
+                if(q>0) {
+                    q--;
+                }
+                else {
+                    resetBox(que[f].x, que[f].y);
+                    delete que[f];
+                    f++;
+                }
+
+                que.push({x:xPos, y:yPos});
+                setBox(xPos, yPos);
+                
+            }, 100);
+    
+            window.onkeydown=function(e){
+                if(e.keyCode==37 && rot!=2 || e.keyCode==38 && rot!=3 || e.keyCode==39 && rot!=0 || e.keyCode==40 && rot!=1)
+                    rot=e.keyCode-37;
+            }
+        }
+    }
+    
+    </script>

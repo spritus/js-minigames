@@ -1,0 +1,398 @@
+<!doctype html>
+<html>
+<style>
+	body {
+		background-color: dimgray;
+	}
+
+	#screen {
+		width: 800px;
+		height: 550px;
+		background-color: #6390F5;
+		background-attachment: scroll;
+		border: solid 4px white;
+		margin: 50px auto;
+		position: relative;
+		overflow: hidden;
+		font-family: marioFont;
+		color: white;
+		font-size: 30px;
+	}
+
+	#status {
+		position: fixed;
+		width: 740px;
+		padding: 10px 30px;
+		z-index: 110;
+	}
+
+	#status #point {
+		float: left;
+	}
+
+	#status #life {
+		float: right;
+	}
+
+	#gameover {
+		position: fixed;
+		width: 740px;
+		padding: 10px 30px;
+		top: 20%;
+		z-index: 120;
+		text-align: center;
+		display: none;
+	}
+
+	#last {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		left: 2000px;
+		top: 2000px;
+	}
+
+	@font-face {
+		font-family: marioFont;
+		src: url(assets/pixel.ttf);
+	}
+</style>
+
+<body>
+	<div id="screen">
+		<div id="status">
+			<div id="point">0000</div>
+			<div id="life">LIFE 3</div>
+		</div>
+		<div id="gameover">GAME OVER</div>
+
+		<div id="last"></div>
+	</div>
+</body>
+
+<script>
+	const W = 800, H = 550
+	const BS = 32
+	const G = 0.01
+
+	var point = 0
+	var life = 3
+	var gameOver = 0
+	var keyMap = []
+	var count = 0
+	var pieces = []
+
+	window.onkeydown = window.onkeyup = (e) => {
+		keyMap[e.which] = e.type == "keydown"
+	}
+
+	window.onload = function () {
+		var screen = document.getElementById("screen")
+		var pointPlace = document.getElementById("point")
+		var lifePlace = document.getElementById("life")
+		var goMessage = document.getElementById("gameover")
+
+		function setPoint(ring) {
+			point++
+			pointPlace.innerText = ('0000' + point).substr(-4)
+			if (!ring) return
+			var snd = new Audio("assets/ring.mp3")
+			snd.play()
+			snd.remove()
+		}
+
+		class Basic {
+			constructor(x, y, w = BS, h = BS) {
+				this.x = x
+				this.y = y
+				this.w = w
+				this.h = h
+				this.count = 0
+				this.anim = 0
+				this.g = 0
+
+				this.body = document.createElement("div")
+				this.body.style.position = "absolute"
+				this.body.style.backgroundImage = "url(assets/mario.png)"
+				this.body.style.width = this.w + "px"
+				this.body.style.height = this.h + "px"
+				this.body.style.left = this.x + "px"
+				this.body.style.top = this.y + "px"
+				screen.appendChild(this.body)
+			}
+
+			update() { }
+		}
+
+		class Ground extends Basic {
+			constructor(x, y, role = 0, w = BS, h = BS) {
+				super(x, y, w, h)
+				this.role = role
+				this.solid = true
+				this.body.style.background = "url(assets/" + (role == 1 ? "wall" : (role == 2 ? "box" : "ground")) + ".png)"
+
+				if (role == 3) {
+					this.update = () => {
+						if (count % 10 == 0) {
+							this.x += Math.sin(count / 100) * 5
+							this.body.style.left = this.x + "px"
+						}
+					}
+				}
+			}
+		}
+
+		class Coin extends Basic {
+			constructor(x, y) {
+				super(x, y, BS / 2, BS)
+				this.role = 20
+				this.solid = false
+				this.body.style.background = "url(assets/coin.gif)"
+			}
+		}
+
+		class GiftBox extends Basic {
+			constructor(x, y, gKind = 0) {
+				super(x, y, BS, BS)
+				this.role = 30
+				this.solid = true
+				this.gift = gKind
+				this.body.style.background = "url(assets/giftbox.gif)"
+				this.gift = null
+			}
+
+			giveIt() {
+				if (this.role != 30) return
+				this.gift = new Coin(this.x + BS / 3, this.y)
+				this.gift.update = () => {
+					if (this.gift.y > this.y - BS * 3) {
+						this.gift.y -= 2
+						this.gift.body.style.top = this.gift.y + "px"
+					}
+					else {
+						this.gift.body.remove()
+						this.gift = null
+						setPoint(true)
+					}
+				}
+				this.role = 0
+				this.body.style.backgroundImage = "url(assets/mario.png)"
+				this.body.style.backgroundPositionY = "-32px"
+				this.body.style.backgroundPositionX = "-32px"
+			}
+
+			update() {
+				if (this.gift != null) this.gift.update()
+			}
+		}
+
+		class Enemy extends Basic {
+			constructor(x, y, role = 100) {
+				super(x, y, BS, role == 101 ? 48 : BS)
+				this.role = role
+				this.solid = false
+				this.dir = false
+				this.body.style.background = "url(assets/" + (role == 101 ? "turtle" : "mush") + ".gif)"
+			}
+
+			update() {
+				var ox = this.x
+				var oy = this.y
+
+				this.g += G
+				if (this.y < 2000) this.y += this.g
+				this.count++
+
+				for (var p of pieces) {
+					if (p.solid && this != p && this.x + 1 < p.x + p.w && this.x + this.w > p.x + 1 && this.y < p.y + p.h + 1 && this.y + this.h > p.y) {
+						this.y = oy
+						if (this.g > 0) this.g = 0
+					}
+					if (p.solid && this != p && this.x < p.x + p.w && this.x + this.w > p.x && oy < p.y + p.h && oy + this.h > p.y) {
+						this.dir = !this.dir
+						this.body.style.transform = this.dir ? "scaleX(-1)" : "scaleX(1)"
+					}
+				}
+
+				if (this.count % 5 == 0) this.x = this.dir ? this.x + 1 : this.x - 1
+
+				this.body.style.left = this.x + "px"
+				this.body.style.top = this.y + "px"
+			}
+
+			kill() {
+				this.body.style.background = "url(assets/mario.png)"
+				if (this.role == 100) {
+					this.body.style.backgroundPositionY = "-64px"
+					this.body.style.backgroundPositionX = "-64px"
+				}
+				else {
+					this.body.style.backgroundPositionY = "-96px"
+					this.body.style.backgroundPositionX = "-96px"
+				}
+				setTimeout(() => {
+					this.body.remove()
+				}, 500);
+			}
+		}
+
+		class Mario extends Basic {
+			constructor(x, y) {
+				super(x, y)
+				this.body.style.zIndex = "100"
+				this.protected = false
+			}
+
+			update() {
+				var ox = this.x
+				var oy = this.y
+
+				this.g += G
+				this.y += this.g
+				this.count++
+
+				this.body.style.left = this.x + "px"
+				this.body.style.top = this.y + "px"
+
+				if (gameOver > 0) {
+					if (gameOver > 1) {
+						this.body.style.backgroundPositionX = "-160px"
+						this.g = -1.5
+						var snd = new Audio("assets/ouch.mp3")
+						snd.play()
+						snd.remove()
+						goMessage.style.display = "block"
+						gameOver--
+					}
+
+					return
+				}
+
+				if (this.y > 650) gameOver = 2
+
+				if (this.protected && this.count % 10 == 0) {
+					this.body.style.opacity = this.count % 3 == 0 ? "1" : "0"
+					if (this.count % 700 == 0) {
+						this.protected = false
+						this.body.style.opacity = "1"
+					}
+				}
+
+				if (keyMap[37] || keyMap[39]) {
+					if (keyMap[37]) {
+						if (this.x > 0) this.x--
+						this.body.style.transform = "scaleX(-1)"
+					}
+
+					if (keyMap[39]) {
+						this.x++
+						this.body.style.transform = "scaleX(1)"
+					}
+
+					if (this.count % 20 == 0) {
+						this.anim = (this.anim + 1) % 3
+						this.body.style.backgroundPositionX = -(1 + this.anim) * 32 + "px"
+					}
+				}
+				else this.body.style.backgroundPositionX = "0px"
+
+				if ((keyMap[38] || keyMap[32]) && this.g == G) {
+					this.g = -1.3
+					var snd = new Audio("assets/jump.mp3")
+					snd.play()
+					snd.remove()
+				}
+
+				if (this.g < 0) this.body.style.backgroundPositionX = "-128px"
+
+				var n = 0;
+				for (var p of pieces) {
+					if (this.x + 1 < p.x + p.w && this.x + this.w > p.x + 1 && this.y < p.y + p.h + 1 && this.y + this.h > p.y) {
+						if (p.solid) {
+							this.y = oy
+							if (this.g > 0) this.g = 0
+
+							if (this.y > p.y + p.h && this.g < 0) {
+								if (p.role == 30) {
+									p.giveIt()
+									this.g = -1 * this.g
+								}
+								this.g = -1 * this.g
+							}
+						}
+
+						if (p.role == 20) {
+							pieces[n].body.remove()
+							pieces.splice(n, 1)
+							setPoint(true)
+						}
+
+						if (p.role >= 100) {
+							if (this.y < p.y - this.h + 2 && this.g > 0.5) {
+								this.g = -1.3
+								var snd = new Audio("assets/kill.mp3")
+								snd.play()
+								snd.remove()
+								pieces[n].kill()
+								pieces.splice(n, 1)
+								setPoint(false)
+							}
+							else if (!this.protected) {
+								if (life > 0) {
+									this.protected = true
+									life--
+								}
+								else {
+									gameOver = 2
+								}
+								lifePlace.innerText = "LIFE " + life
+							}
+						}
+					}
+
+					if (p.solid && this.x < p.x + p.w && this.x + this.w > p.x && oy < p.y + p.h && oy + this.h > p.y) {
+						this.x = ox
+					}
+
+					n++;
+				}
+			}
+		}
+
+		var mario = new Mario(100, 200)
+
+		pieces.push(new Ground(100, 500, 1, 64, 64))
+		pieces.push(new Ground(164, 532, 2, 900))
+		pieces.push(new Ground(200, 320, 3, 96))
+		pieces.push(new Ground(1264, 532, 0, 500))
+		pieces.push(new Ground(364, 415, 0, 500))
+		pieces.push(new Coin(700, 490))
+		pieces.push(new Coin(732, 490))
+		pieces.push(new Coin(764, 490))
+		pieces.push(new GiftBox(964, 415))
+		pieces.push(new GiftBox(996, 415))
+		pieces.push(new GiftBox(1028, 415))
+		pieces.push(new GiftBox(464, 500))
+		pieces.push(new Enemy(264, 380))
+		pieces.push(new Enemy(464, 340))
+		pieces.push(new Enemy(564, 320, 101))
+		pieces.push(new Enemy(364, 120, 101))
+
+
+		setInterval(() => {
+			count++
+			screen.scrollTo(mario.body.offsetLeft - W / 2 + BS / 2, 100)
+			mario.update()
+
+			for (var p of pieces) p.update()
+
+			/* Autoplay test *
+			
+			keyMap[39]=true
+			if(count%100==0) keyMap[32]=true
+			else keyMap[32]=false*/
+		}, 1)
+	}
+</script>
+
+</html>

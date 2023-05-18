@@ -1,0 +1,16 @@
++ snake
++ 1944
++ bubbles
+- chess
+- tespih
+- sokoban
+- volfied
+- tetris
+- pacman
+- domino
+- arkanoid
+- space taxi
+- candy crush
+- fight
+- lemmings
+- evolution sim

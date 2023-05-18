@@ -1,0 +1,35 @@
+body {
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+#gameInfo span {
+    display: inline-block;
+    width: 150px;
+}
+
+#gameInfo input[type="text"] {
+    width: 50px;
+}
+
+#gameArea {
+    position: relative;
+    margin-top: 20px;
+}
+
+#gameStatus {
+    font-weight: bold;
+    color: red;
+}
+
+.mine {
+    box-sizing: border-box;
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background-color: #ccc;
+    border: outset 3px;
+    padding: 2px;
+    text-align: center;
+    font-weight: bold;
+    cursor: pointer;
+}
