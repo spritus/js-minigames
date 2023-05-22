@@ -8,7 +8,7 @@ const screen = document.getElementById("screen");
 const W = 900;
 const H = 600;
 const LS = 20;
-const speed = 0.5;
+const speed = 3;
 
 class Wall {
     constructor(x, y, w, h) {
@@ -53,9 +53,9 @@ class Lemming {
         }
 
         for (let door of doors) {
-            if (this.x < door.x + 30 &&
+            if (this.x < door.x + 36 &&
                 this.x + LS > door.x &&
-                this.y < door.y + 30 &&
+                this.y < door.y + 36 &&
                 this.y + LS > door.y) {
                 this.body.remove();
             }
@@ -147,7 +147,8 @@ generators.push(new Generator(150, 250, 5, 1));
 generators.push(new Generator(270, 450, 15, 3));
 generators.push(new Generator(580, 400, 15, 4));
 
-doors.push(new Doors(270, 550));
+doors.push(new Doors(270, 545));
+doors.push(new Doors(270, 0));
 
 function lifeLoop() {
     for (lem of lemmings) {
