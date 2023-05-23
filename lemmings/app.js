@@ -8,7 +8,7 @@ const screen = document.getElementById("screen");
 const W = 900;
 const H = 600;
 const LS = 20;
-const speed = 3;
+const speed = 0.5;
 
 class Wall {
     constructor(x, y, w, h) {
