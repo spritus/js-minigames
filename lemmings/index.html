@@ -27,6 +27,11 @@
             background-color: rgb(247, 120, 209);
             position: absolute;
             border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .lemming:hover {
+            outline: solid 2px #fdc5ff;
         }
 
         .wall {
@@ -50,11 +55,24 @@
             border-radius: 5px;
             box-sizing: border-box;
         }
+
+        .role {
+            width: 40px;
+            height: 40px;
+            position: absolute;
+            background-color: beige;
+            border: outset 2px;
+            border-radius: 5px;
+            bottom: 0;
+            font-size: 18pt;
+        }
     </style>
 </head>
 
 <body>
-    <div id="screen"></div>
+    <div id="screen">
+        <button class="role">&#8678;</button>
+    </div>
 
     <script src="app.js"></script>
 </body>

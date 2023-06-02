@@ -9,6 +9,7 @@ const W = 900;
 const H = 600;
 const LS = 20;
 const speed = 0.5;
+let time = 0;
 
 class Wall {
     constructor(x, y, w, h) {
@@ -32,12 +33,18 @@ class Lemming {
         this.x = x;
         this.y = y;
         this.rot = rot;
+        this.role = 0;
+        let that = this;
 
         this.body = document.createElement("div");
         this.body.classList.add("lemming");
         this.body.style.left = this.x + "px";
         this.body.style.top = this.y + "px";
         screen.append(this.body);
+
+        this.body.onclick = function () {
+            that.rot = 0;
+        }
     }
 
     action() {
@@ -117,10 +124,8 @@ class Generator {
     }
 
     action() {
-        if (this.lc > 0) {
-            setTimeout(() => {
-                lemmings.push(new Lemming(this.x + 8, this.y + 8, this.rot));
-            }, 1000 * this.lc);
+        if (this.lc > 0 && time % 50 == 0) {
+            lemmings.push(new Lemming(this.x + 8, this.y + 8, this.rot));
             this.lc--;
         }
     }
@@ -151,6 +156,7 @@ doors.push(new Doors(270, 545));
 doors.push(new Doors(270, 0));
 
 function lifeLoop() {
+    time++;
     for (lem of lemmings) {
         lem.action();
     }
