@@ -2,28 +2,28 @@ const lemmings = [];
 const walls = [];
 const generators = [];
 const doors = [];
+const buttons = [];
 
 const screen = document.getElementById("screen");
 
 const W = 900;
-const H = 600;
-const LS = 20;
-const speed = 0.5;
+const H = 560;
 let time = 0;
+let role = null;
+let icon = "";
 
 class Wall {
-    constructor(x, y, w, h) {
+    constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.w = w;
-        this.h = h;
+        this.size = 36;
 
         this.body = document.createElement("div");
         this.body.classList.add("wall");
         this.body.style.left = this.x + "px";
         this.body.style.top = this.y + "px";
-        this.body.style.width = this.w + "px";
-        this.body.style.height = this.h + "px";
+        this.body.style.width = this.size + "px";
+        this.body.style.height = this.size + "px";
         screen.append(this.body);
     }
 }
@@ -32,8 +32,11 @@ class Lemming {
     constructor(x, y, rot) {
         this.x = x;
         this.y = y;
+        this.size = 20;
         this.rot = rot;
-        this.role = 0;
+        this.role = null;
+        this.speed = 0.5;
+
         let that = this;
 
         this.body = document.createElement("div");
@@ -43,16 +46,15 @@ class Lemming {
         screen.append(this.body);
 
         this.body.onclick = function () {
-            that.rot = 0;
+            that.body.innerHTML = icon;
+            that.role = role;
+            that.body.style.zIndex = "1";
         }
     }
 
     action() {
         for (let wall of walls) {
-            if (this.x < wall.x + wall.w &&
-                this.x + LS > wall.x &&
-                this.y < wall.y + wall.h &&
-                this.y + LS > wall.y) {
+            if (collide(this, wall)) {
                 this.rot = 1 + this.rot % 4;
                 this.x = this.ox;
                 this.y = this.oy;
@@ -60,13 +62,12 @@ class Lemming {
         }
 
         for (let door of doors) {
-            if (this.x < door.x + 36 &&
-                this.x + LS > door.x &&
-                this.y < door.y + 36 &&
-                this.y + LS > door.y) {
+            if (collide(this, door)) {
                 this.body.remove();
             }
         }
+
+        if (this.role) this.role(this);
 
         this.ox = this.x;
         this.oy = this.y;
@@ -74,39 +75,40 @@ class Lemming {
         switch (this.rot) {
             case 1:
                 if (this.y < 0) {
-                    this.rot = 1 + this.rot % 4;
+                    this.rot = 2;
                     this.y = 0;
                 }
-                else this.y -= speed;
+                else this.y -= this.speed;
                 break;
 
             case 2:
-                if (this.x > W - LS) {
-                    this.rot = 1 + this.rot % 4;
-                    this.x = W - LS;
+                if (this.x > W - this.size) {
+                    this.rot = 3;
+                    this.x = W - this.size;
                 }
-                else this.x += speed;
+                else this.x += this.speed;
                 break;
 
             case 3:
-                if (this.y > H - LS) {
-                    this.rot = 1 + this.rot % 4;
-                    this.y = H - LS;
+                if (this.y > H - this.size) {
+                    this.rot = 4;
+                    this.y = H - this.size;
                 }
-                else this.y += speed;
+                else this.y += this.speed;
                 break;
 
             case 4:
                 if (this.x < 0) {
-                    this.rot = 1 + this.rot % 4;
+                    this.rot = 1;
                     this.x = 0;
                 }
-                else this.x -= speed;
+                else this.x -= this.speed;
                 break;
         }
 
         this.body.style.left = this.x + "px";
         this.body.style.top = this.y + "px";
+        if (this.rot) this.brot = this.rot;
     }
 }
 
@@ -114,6 +116,7 @@ class Generator {
     constructor(x, y, lc, rot) {
         this.x = x;
         this.y = y;
+        this.size = 30;
         this.lc = lc;
         this.rot = rot;
         this.body = document.createElement("div");
@@ -135,11 +138,33 @@ class Doors {
     constructor(x, y) {
         this.x = x;
         this.y = y;
+        this.size = 36;
         this.body = document.createElement("div");
         this.body.classList.add("door");
         this.body.style.left = this.x + "px";
         this.body.style.top = this.y + "px";
         screen.append(this.body);
+    }
+}
+
+class Button {
+    constructor(x, bicon, brole) {
+        this.body = document.createElement("button");
+        this.body.classList.add("role");
+        this.body.innerHTML = bicon;
+        this.body.style.left = x + "px";
+        this.role = brole;
+        screen.append(this.body);
+        let that = this;
+
+        this.body.onclick = () => {
+            for (let btn of buttons) {
+                btn.body.classList.remove("active");
+            }
+            that.body.classList.add("active");
+            role = that.role;
+            icon = bicon;
+        }
     }
 }
 
@@ -152,8 +177,57 @@ generators.push(new Generator(150, 250, 5, 1));
 generators.push(new Generator(270, 450, 15, 3));
 generators.push(new Generator(580, 400, 15, 4));
 
-doors.push(new Doors(270, 545));
+//doors.push(new Doors(270, 545));
 doors.push(new Doors(270, 0));
+
+buttons.push(new Button(0, "", (that) => {
+    that.rot = that.brot || 3;
+    that.role = null;
+    that.speed = 0.5;
+}));
+
+buttons.push(new Button(40, "&#8678;", (that) => {
+    that.rot = 0;
+    that.brot = 4;
+    for (let lemm of lemmings) {
+        if (that != lemm && collide(that, lemm)) lemm.rot = that.brot;
+    }
+}));
+
+buttons.push(new Button(80, "&#8680;", (that) => {
+    that.rot = 0;
+    that.brot = 2;
+    for (let lemm of lemmings) {
+        if (that != lemm && collide(that, lemm)) lemm.rot = that.brot;
+    }
+}));
+
+buttons.push(new Button(120, "&#8679;", (that) => {
+    that.rot = 0;
+    that.brot = 1;
+    for (let lemm of lemmings) {
+        if (that != lemm && collide(that, lemm)) lemm.rot = that.brot;
+    }
+}));
+
+buttons.push(new Button(160, "&#8681;", (that) => {
+    that.rot = 0;
+    that.brot = 3;
+    for (let lemm of lemmings) {
+        if (that != lemm && collide(that, lemm)) lemm.rot = that.brot;
+    }
+}));
+
+buttons.push(new Button(200, "&#8623;", (that) => {
+    that.speed = 1.2;
+}));
+
+function collide(obj1, obj2) {
+    return obj1.x < obj2.x + obj2.size &&
+        obj1.x + obj1.size > obj2.x &&
+        obj1.y < obj2.y + obj2.size &&
+        obj1.y + obj1.size > obj2.y;
+}
 
 function lifeLoop() {
     time++;
