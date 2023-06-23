@@ -1,9 +1,10 @@
 const lemmings = [];
 const walls = [];
-const generators = [];
-const doors = [];
+const inDoors = [];
+const outDoors = [];
 const buttons = [];
 
+/** Ekran gostergeci */
 const screen = document.getElementById("screen");
 
 const W = 900;
@@ -13,6 +14,11 @@ let role = null;
 let icon = "";
 
 class Wall {
+    /**
+     * Duvar olusturan sinif
+     * @param {number} x 
+     * @param {number} y 
+     */
     constructor(x, y) {
         this.x = x;
         this.y = y;
@@ -29,6 +35,12 @@ class Wall {
 }
 
 class Lemming {
+    /**
+     * Lemming olusturan sinif
+     * @param {number} x    x koordinati
+     * @param {number} y    y koordinati
+     * @param {number} rot  gidis yonu
+     */
     constructor(x, y, rot) {
         this.x = x;
         this.y = y;
@@ -52,6 +64,7 @@ class Lemming {
         }
     }
 
+    /** Ana dongude yapacagi isler */
     action() {
         for (let wall of walls) {
             if (collide(this, wall)) {
@@ -61,7 +74,7 @@ class Lemming {
             }
         }
 
-        for (let door of doors) {
+        for (let door of outDoors) {
             if (collide(this, door)) {
                 this.body.remove();
             }
@@ -112,7 +125,14 @@ class Lemming {
     }
 }
 
-class Generator {
+class InDoor {
+    /**
+     * Bir veya daha fazla lemming ureten kapi
+     * @param {Number} x    x koordinati
+     * @param {Number} y    y koordinati
+     * @param {Number} lc   uretilecek lemming sayisi
+     * @param {Number} rot  kapinin yonu
+     */
     constructor(x, y, lc, rot) {
         this.x = x;
         this.y = y;
@@ -126,6 +146,7 @@ class Generator {
         screen.append(this.body);
     }
 
+    /** Ana dongude yapacagi isler */
     action() {
         if (this.lc > 0 && time % 50 == 0) {
             lemmings.push(new Lemming(this.x + 8, this.y + 8, this.rot));
@@ -134,7 +155,12 @@ class Generator {
     }
 }
 
-class Doors {
+class OutDoor {
+    /**
+     * Lemmingler icin cikis kapisi
+     * @param {number} x x koordinati
+     * @param {number} y y koordinati
+     */
     constructor(x, y) {
         this.x = x;
         this.y = y;
@@ -148,6 +174,12 @@ class Doors {
 }
 
 class Button {
+    /**
+     * 
+     * @param {number} x 
+     * @param {string} bicon 
+     * @param {number} brole 
+     */
     constructor(x, bicon, brole) {
         this.body = document.createElement("button");
         this.body.classList.add("role");
@@ -173,12 +205,12 @@ walls.push(new Wall(100, 350, 400, 50));
 walls.push(new Wall(500, 150, 50, 150));
 walls.push(new Wall(50, 150, 50, 200));
 
-generators.push(new Generator(150, 250, 5, 1));
-generators.push(new Generator(270, 450, 15, 3));
-generators.push(new Generator(580, 400, 15, 4));
+inDoors.push(new InDoor(150, 250, 5, 1));
+inDoors.push(new InDoor(270, 450, 15, 3));
+inDoors.push(new InDoor(580, 400, 15, 4));
 
 //doors.push(new Doors(270, 545));
-doors.push(new Doors(270, 0));
+outDoors.push(new OutDoor(270, 0));
 
 buttons.push(new Button(0, "", (that) => {
     that.rot = that.brot || 3;
@@ -222,6 +254,7 @@ buttons.push(new Button(200, "&#8623;", (that) => {
     that.speed = 1.2;
 }));
 
+/** Carpisma kontrolu */
 function collide(obj1, obj2) {
     return obj1.x < obj2.x + obj2.size &&
         obj1.x + obj1.size > obj2.x &&
@@ -229,14 +262,15 @@ function collide(obj1, obj2) {
         obj1.y + obj1.size > obj2.y;
 }
 
+/** Ana dongu */
 function lifeLoop() {
     time++;
     for (lem of lemmings) {
         lem.action();
     }
 
-    for (gen of generators) {
-        gen.action();
+    for (door of inDoors) {
+        door.action();
     }
 
     requestAnimationFrame(lifeLoop);
