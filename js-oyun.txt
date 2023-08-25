@@ -16,3 +16,5 @@
 - evolution sim
 - turn based strategy
 - raycast
+- bomberman
+- 3d bomberman

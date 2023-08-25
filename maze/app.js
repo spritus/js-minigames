@@ -2,13 +2,14 @@ var area = document.createElement("div");
 area.id = "area";
 document.body.append(area);
 var maze = [];
-const w = 30;
-const h = 20;
+const w = 29;
+const h = 19;
 for (let n = 0; n < w * h; n++) {
     maze[n] = document.createElement("div");
     maze[n].classList.add("cell");
     area.append(maze[n]);
     maze[n].val = 0;
+    if (n % 2 == 0 && Math.floor(n / w) % 2 == 0) maze[n].style.backgroundColor = "white";
 }
 
 function cell(x, y) {
@@ -38,7 +39,7 @@ function get(x, y) {
         set(x, y);
 } */
 
-function go(x, y) {
+/* function go(x, y) {
     if (get(x, y) || x < 0 || x >= w || y < 0 || y >= h || (
         get(x - 1, y - 1) && get(x - 1, y) && get(x, y - 1) ||
         get(x, y - 1) && get(x + 1, y) && get(x + 1, y - 1) ||
@@ -51,4 +52,4 @@ function go(x, y) {
     if (Math.random() * 100 > 40) go(x + 1, y);
 }
 
-go(w / 2, h / 2);
+go(w / 2, h / 2); */

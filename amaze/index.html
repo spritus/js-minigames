@@ -18,6 +18,8 @@
 <script>
     const canvas = document.getElementById('area');
     const c = canvas.getContext('2d');
+    var bl = 0;
+
     class Cell {
         constructor(i, j) {
             this.i = i;
@@ -52,6 +54,7 @@
                 this.x2 = this.x1;
                 this.y2 = cells[i1][j1].j * inc + inc;
             }
+            //bl = (bl + 1) % 11;
             this.weight = Math.random();
         }
         show() {
@@ -95,7 +98,9 @@
                 if (oldIndex != newIndex) {
                     cells[walls[index].i1][walls[index].j1].inMaze = true;
                     cells[walls[index].i2][walls[index].j2].inMaze = true;
-                    for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) if (cells[i][j].index == oldIndex) cells[i][j].index = newIndex;
+                    for (let i = 0; i < cols; i++)
+                        for (let j = 0; j < rows; j++)
+                            if (cells[i][j].index == oldIndex) cells[i][j].index = newIndex;
                     walls.splice(index, 1);
                     break;
                 } else closed.push(walls[index]);
