@@ -26,6 +26,12 @@ function get(x, y) {
     return cell(x, y).val;
 }
 
+for (let n = 0; n < 150; n++) {
+    let x = Math.floor(Math.random() * w);
+    let y = Math.floor(Math.random() * h);
+    if (!get(x, y) && (x % 2 == 0 && y % 2 == 1 || x % 2 == 1 && y % 2 == 0)) set(x, y);
+    else n--;
+}
 /* for (let n = 0; n < 250; n++) {
     let x = Math.floor(Math.random() * w);
     let y = Math.floor(Math.random() * h);
