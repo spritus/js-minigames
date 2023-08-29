@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Air Force</title>
 </head>
 <style>
-	body{
+	body {
 		background-color: dimgray;
 		font-family: "Arial Narrow";
 	}
 
-	#screen{
+	#screen {
 		position: relative;
 		width: 600px;
 		height: 800px;
@@ -19,39 +20,39 @@
 		border: solid 4px white;
 		margin: 40px auto;
 		overflow: hidden;
-		background-image: url(img/bg1.png);		
+		background-image: url(img/bg1.png);
 		cursor: crosshair;
 		color: white;
 		font-weight: bold;
 		font-size: 24px;
 	}
 
-	#status{
+	#status {
 		position: absolute;
 		width: calc(100% - 60px);
 		padding: 10px 30px;
 		z-index: 100;
 	}
 
-	#status #level{
+	#status #level {
 		float: left;
 	}
 
-	#status #life{
+	#status #life {
 		float: right;
 	}
 
-	#message{
+	#message {
 		position: absolute;
 		width: calc(100% - 60px);
 		top: -1000px;
 		text-align: center;
 		z-index: 100;
 		padding: 30px;
-		background-color: rgba(0,0,0,0.3);
+		background-color: rgba(0, 0, 0, 0.3);
 	}
 
-	#message h3{
+	#message h3 {
 		overflow: hidden;
 		white-space: nowrap;
 		display: inline-block;
@@ -59,23 +60,37 @@
 		animation: typing 3.5s steps(40, end);
 	}
 
-	@keyframes come{
-		from {top: -1000px}
-		to {top: 35%;}
+	@keyframes come {
+		from {
+			top: -1000px
+		}
+
+		to {
+			top: 35%;
+		}
 	}
 
-	@keyframes go{
-		from {top: 35%;}
-		to {top: -1000px;}
+	@keyframes go {
+		from {
+			top: 35%;
+		}
+
+		to {
+			top: -1000px;
+		}
 	}
 
-	@keyframes typing{
-		from { width: 0 }
-		to { width: 100% }
+	@keyframes typing {
+		from {
+			width: 0
+		}
+
+		to {
+			width: 100%
+		}
 	}
-
-
 </style>
+
 <body>
 	<div id="screen">
 		<div id="status">
@@ -87,24 +102,24 @@
 </body>
 
 <script>
-	const W=600,		// Oyun alani genisligi
-			H=800,		// Oyun alani yuksekligi
-			OW=50;		// Genel nesne buyuklugu
+	const W = 600,		// Oyun alani genisligi
+		H = 800,		// Oyun alani yuksekligi
+		OW = 50;		// Genel nesne buyuklugu
 	var screen, message, levelStat, lifeStat;	// Ekran parcalari
-	var count=0;		// Oyun genel sayaci
-	var level=0;		// Hangi level?
+	var count = 0;		// Oyun genel sayaci
+	var level = 0;		// Hangi level?
 	var hero;			// Oyuncu nesnesi
-	var enemies=[];	// Dusmanlar
-	var enemyFires=[];// Dusman atislari 
-	var heroFires=[];	// Oyun atislari
-	
+	var enemies = [];	// Dusmanlar
+	var enemyFires = [];// Dusman atislari 
+	var heroFires = [];	// Oyun atislari
+
 	// ******* Oyun levellari *******
-	var levels=[
+	var levels = [
 		// Ilk eleman level ozellikleri: Arkaplan, Atis sayisi, Sure
 		// Sonrakiler dusman ozellikleri: Zaman, X, Y, Hareket, Adet, Dagilim, Tip
 		// Hareket tipleri: 0:Hareketsiz 1:Duz gelis 2:Saga carpraz 3:Sola carpraz 4:Sola yay 5:Saga yay
 		// Dusman tipleri 0:Normal ucak 1:Atis yapan ucak 2:Izleyen ucaksavar 3:Daire atisli ucaksavar 4:Spiral atisli ucaksavar
-		
+
 		[[1, 1, 7000], [500, 150, -50, 1, 20, 300], [4000, 275, 300, 0, 1, 0, 2], [3500, 150, -50, 1, 20, 300], [6500, 150, -50, 1, 10, 300], [5500, 75, 300, 0, 1, 0, 2], [5500, 475, 300, 0, 1, 0, 3]],
 		[[1, 1, 8000], [500, 150, -50, 1, 20, 300], [4000, 275, 300, 0, 1, 0, 2], [3500, -50, 50, 2, 5, 10], [3500, 600, 50, 3, 5, 10], [6500, 150, -50, 1, 10, 300], [6000, 75, 300, 0, 1, 0, 2], [6000, 475, 300, 0, 1, 0, 3], [7000, 275, 100, 0, 1, 0, 4]],
 		[[2, 1, 8000], [500, 150, -50, 1, 3, 300, 1], [1000, 375, -50, 1, 6, 0], [2500, 150, -50, 1, 4, 300, 1], [2000, 275, 300, 0, 1, 0, 3], [3000, 175, -50, 1, 6, 0], [3500, 550, -50, 3, 5, 0], [4800, 375, -50, 4, 10, 0], [5000, 50, 300, 0, 1, 0, 4], [7500, 300, -50, 5, 1, 0, 1]],
@@ -116,399 +131,399 @@
 		[[4, 3, 2000], [500, -75, 300, 6, 1, 0, 8], [750, 675, 300, 6, 1, 0, 8], [750, 75, -50, 1, 4, 0, 1], [1750, 275, -50, 1, 4, 0, 1], [2750, 475, -50, 1, 4, 0, 1]],
 	];
 	var MX, MY;				// Mouse konumu
-	var gameOver=false;	// Oyun bitti mi?
-	var pause=false;		// Oyun durdu mu?
-	
-	class Basic{	// Temel nesne sinifi
-		constructor(speed, x, y, rotable=true, rota=0){
-			this.speed=speed;
-			this.x=x;
-			this.fx=x;
-			this.y=y;
-			this.fy=y;
-			this.n=0;
-			this.rotable=rotable;
-			this.rota=rota;
-			this.body=document.createElement("div");
-			this.body.style.position="absolute";
-			this.body.style.left=this.x+"px";
-			this.body.style.top=this.y+"px";
+	var gameOver = false;	// Oyun bitti mi?
+	var pause = false;		// Oyun durdu mu?
+
+	class Basic {	// Temel nesne sinifi
+		constructor(speed, x, y, rotable = true, rota = 0) {
+			this.speed = speed;
+			this.x = x;
+			this.fx = x;
+			this.y = y;
+			this.fy = y;
+			this.n = 0;
+			this.rotable = rotable;
+			this.rota = rota;
+			this.body = document.createElement("div");
+			this.body.style.position = "absolute";
+			this.body.style.left = this.x + "px";
+			this.body.style.top = this.y + "px";
 			screen.appendChild(this.body);
 		}
 
-		moveIt(nx, ny){
-			var ox=this.x;
-			var oy=this.y;
-			if(!isNaN(nx)) this.x=nx;
-			if(!isNaN(ny)) this.y=ny;
-			if(this.rotable) {
-				this.rota=Math.atan2(this.y-oy,this.x-ox)*180/Math.PI+90;
-				this.body.style.transform="rotate("+this.rota+"deg)";
+		moveIt(nx, ny) {
+			var ox = this.x;
+			var oy = this.y;
+			if (!isNaN(nx)) this.x = nx;
+			if (!isNaN(ny)) this.y = ny;
+			if (this.rotable) {
+				this.rota = Math.atan2(this.y - oy, this.x - ox) * 180 / Math.PI + 90;
+				this.body.style.transform = "rotate(" + this.rota + "deg)";
 			}
-			this.body.style.top=this.y+"px";
-			this.body.style.left=this.x+"px";
+			this.body.style.top = this.y + "px";
+			this.body.style.left = this.x + "px";
 		}
 
-		move(){
+		move() {
 			// ******* Nesne hareketleri *******
 		}
 
-		loop(){
+		loop() {
 			// ******* Nesnenin dongusu *******
 		}
 
-		update(){
+		update() {
 			this.n++;
-			if(this.n % this.speed == 0) this.move();
+			if (this.n % this.speed == 0) this.move();
 			this.loop();
 		}
 	}
 
-	class Fire extends Basic{		// Atis sinifi
-		constructor(speed=1, x=W/2-OW/2, y=H-100, rotable=false, rota=0){
-			super(speed=speed, x=x, y=y, rotable=rotable, rota=rota);
-			this.body.style.width="2px";
-			this.body.style.height="5px";
-			this.rotable=rotable;
-			this.rota=rota;
-			this.body.style.backgroundColor="white";
-			this.body.style.border="solid 2px red";
-			this.body.style.borderRadius="3px";
-			this.tx=this.fx+Math.cos(rota*Math.PI/180)*600;
-			this.ty=this.fy+Math.sin(rota*Math.PI/180)*600;
-			var gun=new Audio("audio/gun.mp3");
+	class Fire extends Basic {		// Atis sinifi
+		constructor(speed = 1, x = W / 2 - OW / 2, y = H - 100, rotable = false, rota = 0) {
+			super(speed = speed, x = x, y = y, rotable = rotable, rota = rota);
+			this.body.style.width = "2px";
+			this.body.style.height = "5px";
+			this.rotable = rotable;
+			this.rota = rota;
+			this.body.style.backgroundColor = "white";
+			this.body.style.border = "solid 2px red";
+			this.body.style.borderRadius = "3px";
+			this.tx = this.fx + Math.cos(rota * Math.PI / 180) * 600;
+			this.ty = this.fy + Math.sin(rota * Math.PI / 180) * 600;
+			var gun = new Audio("audio/gun.mp3");
 			gun.play();
 			gun.remove();
 		}
 
-		move(){
-			const d=100;
-			const dx=(this.tx-this.x)/d;
-			const dy=(this.ty-this.y)/d;
-			this.moveIt(this.x+dx, this.y+dy);
+		move() {
+			const d = 100;
+			const dx = (this.tx - this.x) / d;
+			const dy = (this.ty - this.y) / d;
+			this.moveIt(this.x + dx, this.y + dy);
 		}
 	}
-	
-	class Enemy extends Basic{		// Dusman sinifi
-		constructor(speed=1, x=W/2-OW/2, y=H-100, t=0){
-			super(speed=speed, x=x, y=y);
-			this.body.style.width=OW+"px";
-			this.body.style.height=OW+"px";
-			this.life=1;
-			this.body.style.backgroundImage="url(img/plane1.png)";
-			switch(t){
+
+	class Enemy extends Basic {		// Dusman sinifi
+		constructor(speed = 1, x = W / 2 - OW / 2, y = H - 100, t = 0) {
+			super(speed = speed, x = x, y = y);
+			this.body.style.width = OW + "px";
+			this.body.style.height = OW + "px";
+			this.life = 1;
+			this.body.style.backgroundImage = "url(img/plane1.png)";
+			switch (t) {
 
 				// ******* Dusman tipleri *******
 				case 1:
-					this.life=2;
-					this.body.style.backgroundImage="url(img/plane2.png)";
-					this.loop=()=>{
-						if(this.n % 400 == 0){
-								var fire=new Fire(3, this.x+OW/2, this.y+OW, true, this.rota-90);
-								fire.body.style.border="solid 2px green";
-								enemyFires.push(fire);
-							}
+					this.life = 2;
+					this.body.style.backgroundImage = "url(img/plane2.png)";
+					this.loop = () => {
+						if (this.n % 400 == 0) {
+							var fire = new Fire(3, this.x + OW / 2, this.y + OW, true, this.rota - 90);
+							fire.body.style.border = "solid 2px green";
+							enemyFires.push(fire);
+						}
 					}
-				break;
+					break;
 
 				case 2:
-					this.life=3;
-					this.body.style.backgroundImage="url(img/antiac1.png)";
-					this.cannon=document.createElement("div");
-					this.cannon.style.position="absolute";
-					this.cannon.style.width="100%";
-					this.cannon.style.height="100%";
-					this.cannon.style.left="0px";
-					this.cannon.style.top="0px";
-					this.cannon.style.backgroundImage="url(img/cannon.png)";
+					this.life = 3;
+					this.body.style.backgroundImage = "url(img/antiac1.png)";
+					this.cannon = document.createElement("div");
+					this.cannon.style.position = "absolute";
+					this.cannon.style.width = "100%";
+					this.cannon.style.height = "100%";
+					this.cannon.style.left = "0px";
+					this.cannon.style.top = "0px";
+					this.cannon.style.backgroundImage = "url(img/cannon.png)";
 					this.body.appendChild(this.cannon);
-					this.loop=()=>{
-						if(!gameOver){
-							var r=Math.atan2(hero.y-this.y, hero.x-this.x)*180/Math.PI;
-							this.cannon.style.transform="rotate("+(r+90)+"deg)";
-							if(this.n % 200 == 0){
-								var fire=new Fire(3, this.x+OW/2+Math.cos(r*Math.PI/180)*30, this.y+OW/2+Math.sin(r*Math.PI/180)*30, true, r);
-								fire.body.style.border="solid 2px blue";
+					this.loop = () => {
+						if (!gameOver) {
+							var r = Math.atan2(hero.y - this.y, hero.x - this.x) * 180 / Math.PI;
+							this.cannon.style.transform = "rotate(" + (r + 90) + "deg)";
+							if (this.n % 200 == 0) {
+								var fire = new Fire(3, this.x + OW / 2 + Math.cos(r * Math.PI / 180) * 30, this.y + OW / 2 + Math.sin(r * Math.PI / 180) * 30, true, r);
+								fire.body.style.border = "solid 2px blue";
 								enemyFires.push(fire);
 							}
 						}
 					}
-				break;
+					break;
 
 				case 3:
-					this.life=3;
-					this.body.style.backgroundImage="url(img/antiac2.png)";
-					this.loop=()=>{
-						if(this.n<5 || this.n % 500 == 0){
-							for(var r=0; r<=10; r++){
-								var fire=new Fire(5, this.x+OW/2, this.y+OW/2, true, r*36);
-								fire.body.style.border="solid 2px orange";
+					this.life = 3;
+					this.body.style.backgroundImage = "url(img/antiac2.png)";
+					this.loop = () => {
+						if (this.n < 5 || this.n % 500 == 0) {
+							for (var r = 0; r <= 10; r++) {
+								var fire = new Fire(5, this.x + OW / 2, this.y + OW / 2, true, r * 36);
+								fire.body.style.border = "solid 2px orange";
 								enemyFires.push(fire);
 							}
 						}
 					}
-				break;
+					break;
 
 				case 4:
-					this.life=4;
-					this.body.style.backgroundImage="url(img/antiac3.png)";
-					this.loop=()=>{
-						if(this.n % 20 == 0 && this.n % 500 > 0 && this.n % 500 < 250){
-							var fire=new Fire(5, this.x+OW/2, this.y+OW/2, true, this.n % 360);
-							fire.body.style.border="solid 2px purple";
+					this.life = 4;
+					this.body.style.backgroundImage = "url(img/antiac3.png)";
+					this.loop = () => {
+						if (this.n % 20 == 0 && this.n % 500 > 0 && this.n % 500 < 250) {
+							var fire = new Fire(5, this.x + OW / 2, this.y + OW / 2, true, this.n % 360);
+							fire.body.style.border = "solid 2px purple";
 							enemyFires.push(fire);
 						}
 					}
-				break;
+					break;
 
 				case 5:
-					this.rotable=false;
-					this.rota=-90;
-					this.life=12;
-					this.body.style.backgroundImage="url(img/plane3.png)";
-					this.cannon=document.createElement("div");
-					this.cannon.style.position="absolute";
-					this.cannon.style.width="100%";
-					this.cannon.style.height="100%";
-					this.cannon.style.left="0px";
-					this.cannon.style.top="10px";
-					this.cannon.style.backgroundImage="url(img/cannon.png)";
+					this.rotable = false;
+					this.rota = -90;
+					this.life = 12;
+					this.body.style.backgroundImage = "url(img/plane3.png)";
+					this.cannon = document.createElement("div");
+					this.cannon.style.position = "absolute";
+					this.cannon.style.width = "100%";
+					this.cannon.style.height = "100%";
+					this.cannon.style.left = "0px";
+					this.cannon.style.top = "10px";
+					this.cannon.style.backgroundImage = "url(img/cannon.png)";
 					this.body.appendChild(this.cannon);
-					this.loop=()=>{
-						if(!gameOver){
-							var r=Math.atan2(hero.y-this.y, hero.x-this.x)*180/Math.PI;
-							this.cannon.style.transform="rotate("+(r+90)+"deg)";
-							if(this.n % 20 == 0 && this.n % 500 > 0 && this.n % 500 < 250){
-								var fire=new Fire(3, this.x+OW/2+Math.cos(r*Math.PI/180)*30, this.y+OW/2+Math.sin(r*Math.PI/180)*30, true, r);
-								fire.body.style.border="solid 2px purple";
+					this.loop = () => {
+						if (!gameOver) {
+							var r = Math.atan2(hero.y - this.y, hero.x - this.x) * 180 / Math.PI;
+							this.cannon.style.transform = "rotate(" + (r + 90) + "deg)";
+							if (this.n % 20 == 0 && this.n % 500 > 0 && this.n % 500 < 250) {
+								var fire = new Fire(3, this.x + OW / 2 + Math.cos(r * Math.PI / 180) * 30, this.y + OW / 2 + Math.sin(r * Math.PI / 180) * 30, true, r);
+								fire.body.style.border = "solid 2px purple";
 								enemyFires.push(fire);
 							}
 						}
 					}
-				break;
+					break;
 
 				case 6:
-					this.rotable=false;
-					this.rota=-90;
-					this.life=30;
-					this.body.style.backgroundImage="url(img/plane4.png)";
-					this.loop=()=>{
-						if(this.n % 20 == 0){
-							var fire=new Fire(5, this.x+OW/2, this.y+OW/2, true, this.n % 360);
-							fire.body.style.border="solid 2px darkgray";
+					this.rotable = false;
+					this.rota = -90;
+					this.life = 30;
+					this.body.style.backgroundImage = "url(img/plane4.png)";
+					this.loop = () => {
+						if (this.n % 20 == 0) {
+							var fire = new Fire(5, this.x + OW / 2, this.y + OW / 2, true, this.n % 360);
+							fire.body.style.border = "solid 2px darkgray";
 							enemyFires.push(fire);
 						}
-						if(this.n % 500 == 0)
-							for(var r=0; r<=10; r++){
-								var fire=new Fire(5, this.x+OW/2, this.y+OW/2, true, r*36);
-								fire.body.style.border="solid 2px green";
+						if (this.n % 500 == 0)
+							for (var r = 0; r <= 10; r++) {
+								var fire = new Fire(5, this.x + OW / 2, this.y + OW / 2, true, r * 36);
+								fire.body.style.border = "solid 2px green";
 								enemyFires.push(fire);
 							}
 					}
-				break;
+					break;
 
 				case 7:
-					this.rotable=false;
-					this.rota=-90;
-					this.life=15;
-					this.body.style.backgroundImage="url(img/plane5.png)";
-					this.loop=()=>{
-						if(!gameOver){
-							var r=Math.atan2(hero.y-this.y, hero.x-this.x)*180/Math.PI;
-							if(this.n % 20 == 0 && this.n % 500 > 0 && this.n % 500 < 250){
-								var fire=new Fire(2, this.x+OW/2+Math.cos(r*Math.PI/180)*30, this.y+OW/2+Math.sin(r*Math.PI/180)*30, true, r);
-								fire.body.style.border="solid 2px purple";
+					this.rotable = false;
+					this.rota = -90;
+					this.life = 15;
+					this.body.style.backgroundImage = "url(img/plane5.png)";
+					this.loop = () => {
+						if (!gameOver) {
+							var r = Math.atan2(hero.y - this.y, hero.x - this.x) * 180 / Math.PI;
+							if (this.n % 20 == 0 && this.n % 500 > 0 && this.n % 500 < 250) {
+								var fire = new Fire(2, this.x + OW / 2 + Math.cos(r * Math.PI / 180) * 30, this.y + OW / 2 + Math.sin(r * Math.PI / 180) * 30, true, r);
+								fire.body.style.border = "solid 2px purple";
 								enemyFires.push(fire);
 							}
 						}
-						if(this.n % 40 == 0 && this.n % 150 > 0 && this.n % 200 < 50)
-							for(var r=0; r<=10; r++){
-								var fire=new Fire(5, this.x+OW/2, this.y+OW/2, true, r*36);
-								fire.body.style.border="solid 2px green";
+						if (this.n % 40 == 0 && this.n % 150 > 0 && this.n % 200 < 50)
+							for (var r = 0; r <= 10; r++) {
+								var fire = new Fire(5, this.x + OW / 2, this.y + OW / 2, true, r * 36);
+								fire.body.style.border = "solid 2px green";
 								enemyFires.push(fire);
 							}
 					}
 
 				case 8:
-					this.rotable=false;
-					this.rota=-90;
-					this.life=20;
-					this.body.style.backgroundImage="url(img/plane5.png)";
-					this.loop=()=>{
-						if(!gameOver){
-							var r=Math.atan2(hero.y-this.y, hero.x-this.x)*180/Math.PI;
-							if(this.n % 20 == 0 && this.n % 500 > 0 && this.n % 500 < 250){
-								var fire=new Fire(2, this.x+OW/2+Math.cos(r*Math.PI/180)*30, this.y+OW/2+Math.sin(r*Math.PI/180)*30, true, r);
-								fire.body.style.border="solid 2px purple";
+					this.rotable = false;
+					this.rota = -90;
+					this.life = 20;
+					this.body.style.backgroundImage = "url(img/plane5.png)";
+					this.loop = () => {
+						if (!gameOver) {
+							var r = Math.atan2(hero.y - this.y, hero.x - this.x) * 180 / Math.PI;
+							if (this.n % 20 == 0 && this.n % 500 > 0 && this.n % 500 < 250) {
+								var fire = new Fire(2, this.x + OW / 2 + Math.cos(r * Math.PI / 180) * 30, this.y + OW / 2 + Math.sin(r * Math.PI / 180) * 30, true, r);
+								fire.body.style.border = "solid 2px purple";
 								enemyFires.push(fire);
-								var fire=new Fire(2, this.x+OW/2+Math.cos(r*Math.PI/180)*30, this.y+OW/2+Math.sin(r*Math.PI/180)*30, true, r+10);
-								fire.body.style.border="solid 2px green";
+								var fire = new Fire(2, this.x + OW / 2 + Math.cos(r * Math.PI / 180) * 30, this.y + OW / 2 + Math.sin(r * Math.PI / 180) * 30, true, r + 10);
+								fire.body.style.border = "solid 2px green";
 								enemyFires.push(fire);
 							}
 						}
 					}
-				break;
+					break;
 			}
 		}
 	}
 
-	class Hero extends Basic{		// Oyuncu sinifi
-		constructor(speed=1, x=W/2-OW/2, y=H+100){
-			super(speed=speed, x=x, y=y);
-			this.rotable=false;
-			this.rota=-90;
-			this.body.style.zIndex=10;
-			this.body.style.width=OW+"px";
-			this.body.style.height=OW+"px";
-			this.body.style.backgroundImage="url(img/hero.gif)";
-			this.life=3;
-			this.fire=1;
+	class Hero extends Basic {		// Oyuncu sinifi
+		constructor(speed = 1, x = W / 2 - OW / 2, y = H + 100) {
+			super(speed = speed, x = x, y = y);
+			this.rotable = false;
+			this.rota = -90;
+			this.body.style.zIndex = 10;
+			this.body.style.width = OW + "px";
+			this.body.style.height = OW + "px";
+			this.body.style.backgroundImage = "url(img/hero.gif)";
+			this.life = 3;
+			this.fire = 1;
 		}
 
-		move(){
-			const d=100;
-			const dx=((MX-OW/2)-this.x)/d;
-			const dy=((MY-(MY<H-100 ? 100 : 0))-this.y)/d;
-			this.moveIt(this.x+dx, this.y+dy);
+		move() {
+			const d = 100;
+			const dx = ((MX - OW / 2) - this.x) / d;
+			const dy = ((MY - (MY < H - 100 ? 100 : 0)) - this.y) / d;
+			this.moveIt(this.x + dx, this.y + dy);
 		}
 
-		loop(){
-			if(!gameOver && this.n % 70==0) {
-				switch(this.fire){
+		loop() {
+			if (!gameOver && this.n % 50 == 0) {
+				switch (this.fire) {
 					case 1:
-						heroFires.push(new Fire(2, this.x+OW/2, this.y, true, this.rota));
-					break;
+						heroFires.push(new Fire(2, this.x + OW / 2, this.y, true, this.rota));
+						break;
 					case 2:
-						heroFires.push(new Fire(2, this.x+OW/2-8, this.y, true, this.rota));
-						heroFires.push(new Fire(2, this.x+OW/2+6, this.y, true, this.rota));
-					break;
+						heroFires.push(new Fire(2, this.x + OW / 2 - 8, this.y, true, this.rota));
+						heroFires.push(new Fire(2, this.x + OW / 2 + 6, this.y, true, this.rota));
+						break;
 					case 3:
-						heroFires.push(new Fire(2, this.x+OW/2, this.y, true, this.rota));
-						heroFires.push(new Fire(3, this.x+OW/2, this.y, true, this.rota-10));
-						heroFires.push(new Fire(3, this.x+OW/2, this.y, true, this.rota+10));
-					break;
+						heroFires.push(new Fire(2, this.x + OW / 2, this.y, true, this.rota));
+						heroFires.push(new Fire(3, this.x + OW / 2, this.y, true, this.rota - 10));
+						heroFires.push(new Fire(3, this.x + OW / 2, this.y, true, this.rota + 10));
+						break;
 				}
 			}
 		}
 
-		reset(){
-			this.body.style.backgroundImage="url(img/hero.gif)";
-			this.body.style.display="block";
-			this.life=3;
-			this.x=W/2-OW/2;
-			this.y=H+100;
+		reset() {
+			this.body.style.backgroundImage = "url(img/hero.gif)";
+			this.body.style.display = "block";
+			this.life = 3;
+			this.x = W / 2 - OW / 2;
+			this.y = H + 100;
 		}
 	}
 
 	// ******* Dusman hareket tipleri *******
-	var moves=[
-		function(){		// 0: Hareketsiz
+	var moves = [
+		function () {		// 0: Hareketsiz
 		},
-		function(){		// 1: Duz gelis
-			var b=this.n/3;
-			this.moveIt(this.fx+Math.cos(b/20)*2, this.fy+this.n/2+Math.sin(b/20)*2);
+		function () {		// 1: Duz gelis
+			var b = this.n / 3;
+			this.moveIt(this.fx + Math.cos(b / 20) * 2, this.fy + this.n / 2 + Math.sin(b / 20) * 2);
 		},
-		function(){		// 2: Saga carpraz
-			var b=this.n/3;
-			this.moveIt(this.fx+this.n/2+Math.cos(b/50)*10, this.fy+this.n/2+Math.sin(b/50)*10);
+		function () {		// 2: Saga carpraz
+			var b = this.n / 3;
+			this.moveIt(this.fx + this.n / 2 + Math.cos(b / 50) * 10, this.fy + this.n / 2 + Math.sin(b / 50) * 10);
 		},
-		function(){		// 3: Sola carpraz
-			var b=this.n/3;
-			this.moveIt(this.fx-this.n/2+Math.cos(b/50)*10, this.fy+this.n/2+Math.sin(b/50)*10);
+		function () {		// 3: Sola carpraz
+			var b = this.n / 3;
+			this.moveIt(this.fx - this.n / 2 + Math.cos(b / 50) * 10, this.fy + this.n / 2 + Math.sin(b / 50) * 10);
 		},
-		function(){		// 4: Sola yay
-			var b=this.n/3;
-			this.moveIt(this.fx+Math.cos(b/100)*200, this.fy+Math.sin(b/100)*360);
+		function () {		// 4: Sola yay
+			var b = this.n / 3;
+			this.moveIt(this.fx + Math.cos(b / 100) * 200, this.fy + Math.sin(b / 100) * 360);
 		},
-		function(){		// 5: Saga yay
-			var b=this.n/3-200;
-			this.moveIt(this.fx+Math.sin(b/100)*200, this.fy+Math.cos(b/100)*360);
+		function () {		// 5: Saga yay
+			var b = this.n / 3 - 200;
+			this.moveIt(this.fx + Math.sin(b / 100) * 200, this.fy + Math.cos(b / 100) * 360);
 		},
-		function(){		// 6: Ekranda dolas
-			if(Math.abs(this.fx-this.x)<10 && Math.abs(this.fy-this.y)<10){
-				this.fx=100+Math.round(Math.random()*400);
-				this.fy=Math.round(Math.random()*400);
+		function () {		// 6: Ekranda dolas
+			if (Math.abs(this.fx - this.x) < 10 && Math.abs(this.fy - this.y) < 10) {
+				this.fx = 100 + Math.round(Math.random() * 400);
+				this.fy = Math.round(Math.random() * 400);
 			}
-			const d=150;
-			const dx=(this.fx-this.x)/d;
-			const dy=(this.fy-this.y)/d;
-			this.moveIt(this.x+dx, this.y+dy);
+			const d = 150;
+			const dx = (this.fx - this.x) / d;
+			const dy = (this.fy - this.y) / d;
+			this.moveIt(this.x + dx, this.y + dy);
 		}
 	];
 
-	window.onload=function(){
-		screen=document.getElementById("screen");
-		message=document.getElementById("message");
-		levelStat=document.getElementById("level");
-		lifeStat=document.getElementById("life");
+	window.onload = function () {
+		screen = document.getElementById("screen");
+		message = document.getElementById("message");
+		levelStat = document.getElementById("level");
+		lifeStat = document.getElementById("life");
 
-		function showMsg(msg, p=true, callBack=()=>{}){
-			pause=p;
-			message.innerHTML=msg;
-			message.style.animation="come 1s ease-out forwards";
-			message.onclick=(e)=>{
+		function showMsg(msg, p = true, callBack = () => { }) {
+			pause = p;
+			message.innerHTML = msg;
+			message.style.animation = "come 1s ease-out forwards";
+			message.onclick = (e) => {
 				e.stopPropagation();
-				pause=false;
-				message.style.animation="go 1s ease-in forwards";
+				pause = false;
+				message.style.animation = "go 1s ease-in forwards";
 				callBack();
 			}
 		}
 
-		function mouseEvent(e){
-			if(e.which==1){
-				MX=e.clientX-screen.offsetLeft;
-				MY=e.clientY-screen.offsetTop;
+		function mouseEvent(e) {
+			if (e.which == 1) {
+				MX = e.clientX - screen.offsetLeft;
+				MY = e.clientY - screen.offsetTop;
 			}
-			else if(e.which==3 && !gameOver){
+			else if (e.which == 3 && !gameOver) {
 				showMsg("Savaşı durdurdun!<br>Devam etmek için tıkla");
 			}
 		}
 
-		screen.onmousedown=screen.onmousemove=mouseEvent;
-		document.onselectstart=document.oncontextmenu=()=>false;
-		
-		
-		// ******* Oyuncu helikopteri *******
-		hero=new Hero();
-		MX=hero.x;
-		MY=H-200;
-		
-		setInterval(function(){
-			levelStat.innerText="Seviye: "+(level+1);
-			lifeStat.innerText="Can: "+hero.life;
+		screen.onmousedown = screen.onmousemove = mouseEvent;
+		document.onselectstart = document.oncontextmenu = () => false;
 
-			if(pause) return;
+
+		// ******* Oyuncu helikopteri *******
+		hero = new Hero();
+		MX = hero.x;
+		MY = H - 200;
+
+		setInterval(function () {
+			levelStat.innerText = "Seviye: " + (level + 1);
+			lifeStat.innerText = "Can: " + hero.life;
+
+			if (pause) return;
 
 			count++;
 
-			if(count==16){
-				screen.style.backgroundImage="url(img/bg"+levels[level][0][0]+".png)";
-				hero.fire=levels[level][0][1];
+			if (count == 16) {
+				screen.style.backgroundImage = "url(img/bg" + levels[level][0][0] + ".png)";
+				hero.fire = levels[level][0][1];
 			}
 
-			if(!gameOver && count>=levels[level][0][2] && enemies.length==0)
-				if((level+1)==levels.length){
+			if (!gameOver && count >= levels[level][0][2] && enemies.length == 0)
+				if ((level + 1) == levels.length) {
 					showMsg("<img src='img/medal.png'><br>Voov! Tüm düşmanları yok ettin<br>Oyun bitti<br> Tebrikler!!!<br><br><small>Programlayan: Metehan ALTER<br>2020<small>", false);
-					gameOver=true;
+					gameOver = true;
 				}
 				else
 					showMsg("Bravo! Düşmanları yok ettin<br>Şimdi daha güçlü bir düşman birliği geliyor<br> Hazır ol ve tıkla", false,
-					()=>{
-						level++;
-						count=15;
-						hero.life=3;
-					});
+						() => {
+							level++;
+							count = 15;
+							hero.life = 3;
+						});
 
-			if(count==15) showMsg("<h3>Merhaba korkusuz savaşçı<br>Zorlu bir savaşa hazır mısın?<br>Unutma tüm düşmanları yok etmelisin<br><br>Hadi tıkla ve başla!</h3>");
-			
-			if(count==22) levels[level].forEach((cmd)=>{cmd[7]=cmd[4]});
+			if (count == 15) showMsg("<h3>Merhaba korkusuz savaşçı<br>Zorlu bir savaşa hazır mısın?<br>Unutma tüm düşmanları yok etmelisin<br><br>Hadi tıkla ve başla!</h3>");
+
+			if (count == 22) levels[level].forEach((cmd) => { cmd[7] = cmd[4] });
 
 			// ******* Dusman uretimi *******
-			if(count % 100 == 0){
-				levels[level].forEach((cmd, i)=>{
-					if(i>0 && count>=cmd[0] && cmd[7]>0){
-						var enemy=new Enemy(1, cmd[1]+Math.random()*(typeof cmd[5]==="undefined" ? 10 : cmd[5]), cmd[2], typeof cmd[6]==="undefined" ? 10 : cmd[6]);
-						enemy.move=moves[cmd[3]];
+			if (count % 100 == 0) {
+				levels[level].forEach((cmd, i) => {
+					if (i > 0 && count >= cmd[0] && cmd[7] > 0) {
+						var enemy = new Enemy(1, cmd[1] + Math.random() * (typeof cmd[5] === "undefined" ? 10 : cmd[5]), cmd[2], typeof cmd[6] === "undefined" ? 10 : cmd[6]);
+						enemy.move = moves[cmd[3]];
 						enemies.push(enemy);
 						cmd[7]--;
 					}
@@ -516,57 +531,57 @@
 			}
 
 			// ******* Dusman atisi islemleri *******
-			for(fire in enemyFires){
+			for (fire in enemyFires) {
 				enemyFires[fire].update();
-				if(!gameOver && (hero.life==0 || enemyFires[fire].x>=hero.x+8 && enemyFires[fire].x<=hero.x+OW-8 && enemyFires[fire].y>=hero.y+8 && enemyFires[fire].y<=hero.y+OW-8)){
+				if (!gameOver && (hero.life == 0 || enemyFires[fire].x >= hero.x + 8 && enemyFires[fire].x <= hero.x + OW - 8 && enemyFires[fire].y >= hero.y + 8 && enemyFires[fire].y <= hero.y + OW - 8)) {
 					enemyFires[fire].body.remove();
 					enemyFires.splice(fire, 1);
-					if(hero.life<=1){
-						gameOver=true;
-						hero.body.style.backgroundImage="url(img/explode.gif)";
-						setTimeout((h)=>{h.body.style.display="none"}, 400, hero);
+					if (hero.life <= 1) {
+						gameOver = true;
+						hero.body.style.backgroundImage = "url(img/explode.gif)";
+						setTimeout((h) => { h.body.style.display = "none" }, 400, hero);
 						var explode = new Audio("audio/explode.mp3");
 						explode.play();
 						explode.remove();
-						showMsg("Savaşı kaybettin!<br>Vuruldun veya düşman kaçtı<br><br>Tekrar denemek için tıkla", false, ()=>{
-							for(enemy in enemies)
+						showMsg("Savaşı kaybettin!<br>Vuruldun veya düşman kaçtı<br><br>Tekrar denemek için tıkla", false, () => {
+							for (enemy in enemies)
 								enemies[enemy].body.remove();
-							for(fire in enemyFires)
+							for (fire in enemyFires)
 								enemyFires[fire].body.remove();
 							enemies.splice(0);
 							enemyFires.splice(0);
-							count=20;
+							count = 20;
 							hero.reset();
-							gameOver=false;
+							gameOver = false;
 						});
 						break;
 					}
 					else {
 						hero.life--;
-						hero.body.style.filter="blur(3px)";
-						setTimeout(()=>{hero.body.style.filter="blur(0px)"}, 200);
+						hero.body.style.filter = "blur(3px)";
+						setTimeout(() => { hero.body.style.filter = "blur(0px)" }, 200);
 					}
 				}
-				if(enemyFires[fire].n>500) {
+				if (enemyFires[fire].n > 500) {
 					enemyFires[fire].body.remove();
 					enemyFires.splice(fire, 1);
 				}
 			}
 
 			// ******* Oyuncu atisi islemleri *******
-			for(fire in heroFires){
+			for (fire in heroFires) {
 				heroFires[fire].update();
-				if(heroFires[fire].n>500) {
+				if (heroFires[fire].n > 500) {
 					heroFires[fire].body.remove();
 					heroFires.splice(fire, 1);
 				}
-				for(enemy in enemies){
-					if(heroFires[fire].x>=enemies[enemy].x && heroFires[fire].x<=enemies[enemy].x+OW && heroFires[fire].y>=enemies[enemy].y && heroFires[fire].y<=enemies[enemy].y+OW){
+				for (enemy in enemies) {
+					if (heroFires[fire].x >= enemies[enemy].x && heroFires[fire].x <= enemies[enemy].x + OW && heroFires[fire].y >= enemies[enemy].y && heroFires[fire].y <= enemies[enemy].y + OW) {
 						heroFires[fire].body.remove();
 						heroFires.splice(fire, 1);
-						if(enemies[enemy].life<=1){
-							enemies[enemy].body.style.backgroundImage="url(img/explode.gif)";
-							setTimeout((en)=>{en.body.remove()}, 400, enemies[enemy]);
+						if (enemies[enemy].life <= 1) {
+							enemies[enemy].body.style.backgroundImage = "url(img/explode.gif)";
+							setTimeout((en) => { en.body.remove() }, 400, enemies[enemy]);
 							enemies.splice(enemy, 1);
 							var explode = new Audio("audio/explode.mp3");
 							explode.play();
@@ -574,21 +589,21 @@
 						}
 						else {
 							enemies[enemy].life--;
-							enemies[enemy].body.style.filter="blur(3px)";
-							setTimeout((en)=>{en.body.style.filter="blur(0px)"}, 70, enemies[enemy]);
+							enemies[enemy].body.style.filter = "blur(3px)";
+							setTimeout((en) => { en.body.style.filter = "blur(0px)" }, 70, enemies[enemy]);
 						}
 						break;
 					}
 				}
 			}
-			
+
 			// ******* Dusman islemleri *******
-			for(enemy in enemies){
+			for (enemy in enemies) {
 				enemies[enemy].update();
-				if(enemies[enemy].n>1000 && (enemies[enemy].x<-100 || enemies[enemy].y<-100 || enemies[enemy].x>W+100 || enemies[enemy].y>H+100)) {
+				if (enemies[enemy].n > 1000 && (enemies[enemy].x < -100 || enemies[enemy].y < -100 || enemies[enemy].x > W + 100 || enemies[enemy].y > H + 100)) {
 					enemies[enemy].body.remove();
 					enemies.splice(enemy, 1);
-					hero.life=0;
+					hero.life = 0;
 				}
 			}
 
@@ -598,4 +613,5 @@
 		}, 1);
 	}
 </script>
+
 </html>
