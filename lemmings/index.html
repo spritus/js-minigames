@@ -9,6 +9,7 @@
     <style>
         body {
             background-color: gray;
+            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
         }
 
         #screen {
@@ -27,11 +28,20 @@
             background-color: rgb(247, 120, 209);
             position: absolute;
             border-radius: 50%;
+            outline: solid 1px #fdc5ff;
+            cursor: pointer;
+            text-align: center;
+            color: #fff;
+        }
+
+        .lemming:hover {
+            outline: solid 2px #fdc5ff;
         }
 
         .wall {
-            background-color: brown;
+            background-color: #777;
             position: absolute;
+            border-radius: 5px;
         }
 
         .generator {
@@ -50,11 +60,26 @@
             border-radius: 5px;
             box-sizing: border-box;
         }
+
+        .role {
+            width: 36px;
+            height: 36px;
+            position: absolute;
+            background-color: beige;
+            border-radius: 5px;
+            bottom: 0;
+            font-size: 18pt;
+        }
+
+        .active {
+            border: solid 2px #0f0;
+        }
     </style>
 </head>
 
 <body>
-    <div id="screen"></div>
+    <div id="screen">
+    </div>
 
     <script src="app.js"></script>
 </body>
