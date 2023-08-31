@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            background-color: gray;
+        }
+
+        #area {
+            width: 800px;
+            height: 550px;
+            background-image: url(level1.png);
+            position: relative;
+            margin: 30px auto;
+            border: solid 5px #fff;
+        }
+
+        .point {
+            width: 3px;
+            height: 3px;
+            background-color: chartreuse;
+            position: absolute;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="area"></div>
+    <div id="points"></div>
+</body>
+<script>
+    const area = document.getElementById("area");
+    const points = document.getElementById("points");
+    area.onmouseup = (e) => {
+        let point = document.createElement("div");
+        point.className = "point";
+        point.style.left = e.offsetX + "px";
+        point.style.top = e.offsetY + "px";
+        area.append(point);
+        points.innerText += `${e.offsetX},${e.offsetY}_`;
+    }
+</script>
+
+</html>
