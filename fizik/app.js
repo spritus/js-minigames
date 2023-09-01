@@ -16,19 +16,16 @@ var render = Render.create({
     element: game,
     engine: engine,
     options: {
+        wireframes: false,
         width: WIDTH,
         height: HEIGHT
     }
 });
 
 // create two boxes and a ground
-var boxA = Bodies.rectangle(400, -200, 80, 80, {
+var box = Bodies.rectangle(400, -200, 80, 80, {
     render: {
-        sprite: {
-            texture: "./level1.png",
-            xScale: 1,
-            yScale: 1
-        }
+        color: "red"
     }
 });
 
@@ -47,7 +44,7 @@ var ground = Bodies.fromVertices(545, 375, Matter.Vertices.fromPath(level1),
     }, true);
 
 // add all of the bodies to the world
-World.add(engine.world, [boxA, ground]);
+World.add(engine.world, [box, ground]);
 
 // run the renderer
 Render.run(render);
