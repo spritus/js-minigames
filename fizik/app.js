@@ -23,7 +23,7 @@ var render = Render.create({
 });
 
 // create two boxes and a ground
-var box = Bodies.rectangle(400, -200, 80, 80, {
+var box = Bodies.rectangle(500, -200, 80, 80, {
     render: {
         color: "red"
     }
@@ -35,16 +35,26 @@ var ground = Bodies.fromVertices(545, 375, Matter.Vertices.fromPath(level1),
     {
         isStatic: true,
         render: {
-            sprite: {
-                texture: "./level1.png",
-                xScale: 1,
-                yScale: 1
-            }
+            visible: false
         }
     }, true);
 
+const image = Bodies.rectangle(400, 275, 800, 550, {
+    isStatic: true,
+    render: {
+        sprite: {
+            texture: "./level1.png",
+            xScale: 1,
+            yScale: 1
+        }
+    }
+});
+
+image.collisionFilter = {};
+
+
 // add all of the bodies to the world
-World.add(engine.world, [box, ground]);
+World.add(engine.world, [box, ground, image]);
 
 // run the renderer
 Render.run(render);
