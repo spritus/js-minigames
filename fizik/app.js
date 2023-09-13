@@ -113,6 +113,20 @@ Events.on(engine, "collisionStart", function (event) {
     }
 });
 
+const maxLen = 100;
+Events.on(engine, "beforeUpdate", () => {
+    const dx = elastic.pointA.x - elastic.bodyB.position.x;
+    const dy = elastic.pointA.y - elastic.bodyB.position.y;
+    const currentLength = Math.sqrt(dx * dx + dy * dy);
+
+    if (currentLength > maxLen) {
+        const angle = Math.atan2(dy, dx);
+        const targetX = elastic.pointA.x - Math.cos(angle) * maxLen;
+        const targetY = elastic.pointA.y - Math.sin(angle) * maxLen;
+        Matter.Body.setPosition(elastic.bodyB, { x: targetX, y: targetY });
+    }
+});
+
 // Tüm materyalleri dünyaya ekle
 World.add(engine.world, [ground, image, bomb, elastic]);
 
