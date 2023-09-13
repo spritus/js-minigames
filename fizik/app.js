@@ -57,7 +57,7 @@ const ground = Bodies.fromVertices(545, 375, Matter.Vertices.fromPath(level1),
 const bombOptions = {
     density: 0.004,
     friction: 0,
-    label: "bombe",
+    label: "bomb",
     render: {
         fillStyle: "red"
     }
@@ -102,7 +102,7 @@ let touch = false;
 Events.on(engine, "collisionStart", function (event) {
     let obj = event.pairs[0].bodyB;
 
-    if (obj.label == "bombe" && !touch) {
+    if (obj.label == "bomb" && !touch) {
         obj.render.fillStyle = "green";
         touch = true;
         setTimeout(() => {
@@ -110,6 +110,20 @@ Events.on(engine, "collisionStart", function (event) {
             World.add(engine.world, bomb);
             touch = false;
         }, 3000);
+    }
+});
+
+const maxLen = 100;
+Events.on(engine, "beforeUpdate", () => {
+    const dx = elastic.pointA.x - elastic.bodyB.position.x;
+    const dy = elastic.pointA.y - elastic.bodyB.position.y;
+    const currentLength = Math.sqrt(dx * dx + dy * dy);
+
+    if (currentLength > maxLen) {
+        const angle = Math.atan2(dy, dx);
+        const targetX = elastic.pointA.x - Math.cos(angle) * maxLen;
+        const targetY = elastic.pointA.y - Math.sin(angle) * maxLen;
+        Matter.Body.setPosition(elastic.bodyB, { x: targetX, y: targetY });
     }
 });
 
