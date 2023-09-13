@@ -57,7 +57,7 @@ const ground = Bodies.fromVertices(545, 375, Matter.Vertices.fromPath(level1),
 const bombOptions = {
     density: 0.004,
     friction: 0,
-    label: "bombe",
+    label: "bomb",
     render: {
         fillStyle: "red"
     }
@@ -78,7 +78,7 @@ const mouse = Mouse.create(render.canvas),
     mouseConstraint = MouseConstraint.create(engine, {
         mouse: mouse,
         constraint: {
-            stiffness: 0.5,
+            stiffness: 0.05,
             label: "elastic",
             render: {
                 visible: false
@@ -102,7 +102,7 @@ let touch = false;
 Events.on(engine, "collisionStart", function (event) {
     let obj = event.pairs[0].bodyB;
 
-    if (obj.label == "bombe" && !touch) {
+    if (obj.label == "bomb" && !touch) {
         obj.render.fillStyle = "green";
         touch = true;
         setTimeout(() => {
