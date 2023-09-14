@@ -14,7 +14,10 @@ const HEIGHT = 550;
 const CX = 180, CY = 350;
 
 // Motoru oluştur
-const engine = Engine.create();
+const engine = Engine.create({
+    positionIterations: 10,  // Çarpışma sızıntıları olmaması için 
+    velocityIterations: 10   // hassasiyet arttırılıyor
+});
 const world = engine.world;
 const game = document.getElementById("game");
 
@@ -42,6 +45,9 @@ const image = Bodies.rectangle(550, 275, 1, 1, {
 });
 image.collisionFilter = {};
 
+// Dünya zemini
+const earth = Bodies.rectangle(-30000, 620, 70000, 100, { isStatic: true });
+
 // Zemini oluştur
 const level1 = "112,547 800,549 800,241 785,243 765,233 746,238 728,257 726,292 694,351 680,375 626,376 610,363 587,355 567,349 563,327 543,306 545,238 523,214 497,212 467,214 441,242 441,299 441,330 439,351 397,385 392,325 374,303 340,309 330,340 330,472 317,485 300,499 234,522 179,525 146,533";
 const ground = Bodies.fromVertices(695, 375, Matter.Vertices.fromPath(level1),
@@ -56,10 +62,16 @@ const ground = Bodies.fromVertices(695, 375, Matter.Vertices.fromPath(level1),
 // Bomba özellikleri
 const bombOptions = {
     density: 0.004,
-    friction: 0,
+    friction: 0.001,
     label: "bomb",
+    inertia: Infinity,
     render: {
-        fillStyle: "red"
+        fillStyle: "red",
+        sprite: {
+            texture: "./bomb0.png",
+            xScale: 0.4,
+            yScale: 0.4
+        }
     }
 };
 
@@ -70,7 +82,13 @@ let bomb = Bodies.circle(CX, CY, 7, bombOptions);
 const elastic = Constraint.create({
     pointA: { x: CX, y: CY },
     bodyB: bomb,
-    stiffness: 0.02
+    label: "elastic",
+    stiffness: 0.02,
+    render: {
+        //visible: false,
+        lineWidth: 4,
+        strokeStyle: "rgba(100,100,100,0.3)"
+    }
 });
 
 // Mancınık bomba ve mouse bağlantılarını oluştur
@@ -79,7 +97,6 @@ const mouse = Mouse.create(render.canvas),
         mouse: mouse,
         constraint: {
             stiffness: 0.05,
-            label: "elastic",
             render: {
                 visible: false
             }
@@ -113,8 +130,14 @@ Events.on(engine, "collisionStart", function (event) {
     }
 });
 
-const maxLen = 100;
-Events.on(engine, "beforeUpdate", () => {
+const maxLen = 120;
+let anm = 0;
+Events.on(engine, "beforeUpdate", (event) => {
+    let abomb = Matter.Composite.allBodies(world).find((body) => body.label == "bomb");
+    if (touch && Math.round(event.timestamp) % 100 == 0) {
+        anm = (anm + 1) % 2;
+        abomb.render.sprite.texture = "./bomb" + anm + ".png";
+    }
     const dx = elastic.pointA.x - elastic.bodyB.position.x;
     const dy = elastic.pointA.y - elastic.bodyB.position.y;
     const currentLength = Math.sqrt(dx * dx + dy * dy);
@@ -128,7 +151,7 @@ Events.on(engine, "beforeUpdate", () => {
 });
 
 // Tüm materyalleri dünyaya ekle
-World.add(engine.world, [ground, image, bomb, elastic]);
+World.add(engine.world, [earth, ground, image, bomb, elastic]);
 
 // Renderi çalıştır
 Render.run(render);
