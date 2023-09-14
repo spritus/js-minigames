@@ -8,10 +8,10 @@ const Engine = Matter.Engine,
     Mouse = Matter.Mouse,
     Composites = Matter.Composites;
 
-const WIDTH = 800;
+const WIDTH = 950;
 const HEIGHT = 550;
 
-const CX = 120, CY = 350;
+const CX = 180, CY = 350;
 
 // Motoru oluştur
 const engine = Engine.create();
@@ -30,7 +30,7 @@ const render = Render.create({
 });
 
 // Zemin için texture yap
-const image = Bodies.rectangle(400, 275, 1, 1, {
+const image = Bodies.rectangle(550, 275, 1, 1, {
     isStatic: true,
     render: {
         sprite: {
@@ -44,7 +44,7 @@ image.collisionFilter = {};
 
 // Zemini oluştur
 const level1 = "112,547 800,549 800,241 785,243 765,233 746,238 728,257 726,292 694,351 680,375 626,376 610,363 587,355 567,349 563,327 543,306 545,238 523,214 497,212 467,214 441,242 441,299 441,330 439,351 397,385 392,325 374,303 340,309 330,340 330,472 317,485 300,499 234,522 179,525 146,533";
-const ground = Bodies.fromVertices(545, 375, Matter.Vertices.fromPath(level1),
+const ground = Bodies.fromVertices(695, 375, Matter.Vertices.fromPath(level1),
     {
         isStatic: true,
         label: "ground",
@@ -70,7 +70,7 @@ let bomb = Bodies.circle(CX, CY, 7, bombOptions);
 const elastic = Constraint.create({
     pointA: { x: CX, y: CY },
     bodyB: bomb,
-    stiffness: 0.01
+    stiffness: 0.02
 });
 
 // Mancınık bomba ve mouse bağlantılarını oluştur
@@ -123,7 +123,7 @@ Events.on(engine, "beforeUpdate", () => {
         const angle = Math.atan2(dy, dx);
         const targetX = elastic.pointA.x - Math.cos(angle) * maxLen;
         const targetY = elastic.pointA.y - Math.sin(angle) * maxLen;
-        Matter.Body.setPosition(elastic.bodyB, { x: targetX, y: targetY });
+        Matter.Body.setPosition(elastic.bodyB, { x: targetX, y: targetY }, true);
     }
 });
 
