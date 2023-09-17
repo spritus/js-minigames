@@ -148,6 +148,10 @@ Events.on(engine, "beforeUpdate", (event) => {
         const targetY = sling.pointA.y - Math.sin(angle) * maxLen;
         Matter.Body.setPosition(sling.bodyB, { x: targetX, y: targetY }, true);
     }
+
+    /*     if (sling.bodyB.position.x > sling.pointA.x) {
+            Matter.Body.setPosition(sling.bodyB, { x: sling.pointA.x, y: sling.bodyB.position.y });
+        } */
 });
 
 // Tüm materyalleri dünyaya ekle
