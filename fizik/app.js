@@ -71,11 +71,11 @@ const bombOptions = {
 // İlk bombayı oluştur
 let bomb = Bodies.circle(CX, CY, 7, bombOptions);
 
-// Mancınık oluştur
-const elastic = Constraint.create({
+// Sapan oluştur
+const sling = Constraint.create({
     pointA: { x: CX, y: CY },
     bodyB: bomb,
-    label: "elastic",
+    label: "sling",
     stiffness: 0.02,
     render: {
         //visible: false,
@@ -84,7 +84,7 @@ const elastic = Constraint.create({
     }
 });
 
-// Mancınık bomba ve mouse bağlantılarını oluştur
+// Sapan bomba ve mouse bağlantılarını oluştur
 const mouse = Mouse.create(render.canvas),
     mouseConstraint = MouseConstraint.create(engine, {
         mouse: mouse,
@@ -103,7 +103,7 @@ render.mouse = mouse;
 Events.on(engine, "afterUpdate", function () {
     if (mouseConstraint.mouse.button === -1 && (bomb.position.x > CX + 20 || bomb.position.y < CY - 20)) {
         bomb = Bodies.circle(CX, CY, 7, bombOptions);
-        elastic.bodyB = bomb;
+        sling.bodyB = bomb;
     }
 });
 
@@ -131,20 +131,24 @@ Events.on(engine, "beforeUpdate", (event) => {
         anm = (anm + 1) % 2;
         abomb.render.sprite.texture = "./bomb" + anm + ".png";
     }
-    const dx = elastic.pointA.x - elastic.bodyB.position.x;
-    const dy = elastic.pointA.y - elastic.bodyB.position.y;
+    const dx = sling.pointA.x - sling.bodyB.position.x;
+    const dy = sling.pointA.y - sling.bodyB.position.y;
     const currentLength = Math.sqrt(dx * dx + dy * dy);
 
     if (currentLength > maxLen) {
         const angle = Math.atan2(dy, dx);
-        const targetX = elastic.pointA.x - Math.cos(angle) * maxLen;
-        const targetY = elastic.pointA.y - Math.sin(angle) * maxLen;
-        Body.setPosition(elastic.bodyB, { x: targetX, y: targetY }, true);
+        const targetX = sling.pointA.x - Math.cos(angle) * maxLen;
+        const targetY = sling.pointA.y - Math.sin(angle) * maxLen;
+        Body.setPosition(sling.bodyB, { x: targetX, y: targetY }, true);
     }
+
+    /*     if (sling.bodyB.position.x > sling.pointA.x) {
+            Matter.Body.setPosition(sling.bodyB, { x: sling.pointA.x, y: sling.bodyB.position.y });
+        } */
 });
 
 // Tüm materyalleri dünyaya ekle
-World.add(engine.world, [earth, ground, image, bomb, elastic]);
+World.add(engine.world, [earth, ground, image, bomb, sling]);
 
 // Renderi çalıştır
 Render.run(render);
