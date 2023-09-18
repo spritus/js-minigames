@@ -7,7 +7,6 @@ class Box {
         this.w = w;
         this.h = h;
         fill(255);
-        fromAngle(5);
         rect(this.x, this.y, this.w, this.h);
     }
 }
