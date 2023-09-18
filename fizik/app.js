@@ -1,12 +1,4 @@
-const Engine = Matter.Engine,
-    Render = Matter.Render,
-    World = Matter.World,
-    Bodies = Matter.Bodies,
-    Constraint = Matter.Constraint,
-    Events = Matter.Events,
-    MouseConstraint = Matter.MouseConstraint,
-    Mouse = Matter.Mouse,
-    Composites = Matter.Composites;
+const { Engine, Render, World, Bodies, Body, Constraint, Events, MouseConstraint, Mouse, Composites, Composite, Vertices } = Matter;
 
 const WIDTH = 950;
 const HEIGHT = 550;
@@ -48,9 +40,9 @@ image.collisionFilter = {};
 // Dünya zemini
 const earth = Bodies.rectangle(-30000, 620, 70000, 100, { isStatic: true });
 
-// Zemini oluştur
+// Zemini poligon olarak oluştur (decomp gerekiyor)
 const level1 = "112,547 800,549 800,241 785,243 765,233 746,238 728,257 726,292 694,351 680,375 626,376 610,363 587,355 567,349 563,327 543,306 545,238 523,214 497,212 467,214 441,242 441,299 441,330 439,351 397,385 392,325 374,303 340,309 330,340 330,472 317,485 300,499 234,522 179,525 146,533";
-const ground = Bodies.fromVertices(695, 375, Matter.Vertices.fromPath(level1),
+const ground = Bodies.fromVertices(695, 375, Vertices.fromPath(level1),
     {
         isStatic: true,
         label: "ground",
@@ -86,7 +78,7 @@ const sling = Constraint.create({
     stiffness: 0.02,
     render: {
         //visible: false,
-        lineWidth: 4,
+        lineWidth: 3,
         strokeStyle: "rgba(100,100,100,0.3)"
     }
 });
@@ -123,7 +115,7 @@ Events.on(engine, "collisionStart", function (event) {
         obj.render.fillStyle = "green";
         touch = true;
         setTimeout(() => {
-            Matter.Composite.remove(engine.world, obj);
+            Composite.remove(engine.world, obj);
             World.add(engine.world, bomb);
             touch = false;
         }, 3000);
@@ -133,7 +125,7 @@ Events.on(engine, "collisionStart", function (event) {
 const maxLen = 120;
 let anm = 0;
 Events.on(engine, "beforeUpdate", (event) => {
-    let abomb = Matter.Composite.allBodies(world).find((body) => body.label == "bomb");
+    let abomb = Composite.allBodies(world).find((body) => body.label == "bomb");
     if (touch && Math.round(event.timestamp) % 100 == 0) {
         anm = (anm + 1) % 2;
         abomb.render.sprite.texture = "./bomb" + anm + ".png";
@@ -146,7 +138,7 @@ Events.on(engine, "beforeUpdate", (event) => {
         const angle = Math.atan2(dy, dx);
         const targetX = sling.pointA.x - Math.cos(angle) * maxLen;
         const targetY = sling.pointA.y - Math.sin(angle) * maxLen;
-        Matter.Body.setPosition(sling.bodyB, { x: targetX, y: targetY }, true);
+        Body.setPosition(sling.bodyB, { x: targetX, y: targetY }, true);
     }
 
     /*     if (sling.bodyB.position.x > sling.pointA.x) {
