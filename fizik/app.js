@@ -60,8 +60,7 @@ const bombOptions = {
     render: {
         fillStyle: "red",
         sprite: {
-            texture: "./sprites.png",
-            xOffset: 32,
+            texture: "./bomb0.png",
             xScale: 0.4,
             yScale: 0.4
         }
