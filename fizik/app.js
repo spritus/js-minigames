@@ -130,6 +130,12 @@ Events.on(engine, "beforeUpdate", (event) => {
         anm = (anm + 1) % 2;
         abomb.render.sprite.texture = "./bomb" + anm + ".png";
     }
+
+    if (!touch && abomb.position.y > 560) {
+        Composite.remove(engine.world, abomb);
+        World.add(engine.world, bomb);
+    }
+
     const dx = sling.pointA.x - sling.bodyB.position.x;
     const dy = sling.pointA.y - sling.bodyB.position.y;
     const currentLength = Math.sqrt(dx * dx + dy * dy);
@@ -147,7 +153,7 @@ Events.on(engine, "beforeUpdate", (event) => {
 });
 
 // Tüm materyalleri dünyaya ekle
-World.add(engine.world, [earth, ground, image, bomb, sling]);
+World.add(engine.world, [ground, image, bomb, sling]);
 
 // Renderi çalıştır
 Render.run(render);
