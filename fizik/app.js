@@ -78,8 +78,9 @@ const sling = Constraint.create({
     stiffness: 0.02,
     render: {
         //visible: false,
-        lineWidth: 3,
-        strokeStyle: "rgba(100,100,100,0.3)"
+        lineWidth: 4,
+        strokeStyle: "rgba(100,100,100,0.3)",
+        type: "line"
     }
 });
 
