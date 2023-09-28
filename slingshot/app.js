@@ -2,7 +2,7 @@ const W = 950, H = 550;
 const { Engine, Body, Bodies, World, Mouse, MouseConstraint, Constraint, Events, Runner } = Matter;
 let engine, world;
 let ground, box, bomb, mConstraint, mouse, sling;
-let touch = false;
+let bombSprites = [];
 
 class Box {
     constructor(x, y, w, h, stat = false) {
@@ -15,7 +15,7 @@ class Box {
         this.h = h;
     }
 
-    show() {
+    update() {
         const pos = this.body.position;
         const angle = this.body.angle;
         push();
@@ -33,20 +33,40 @@ class Bomb {
         this.r = 7;
         this.body = Bodies.circle(x, y, this.r);
         World.add(world, this.body);
-        this.x = x;
-        this.y = y;
-        this.color = "green";
+        this.touch = false;
+        this.frame = 0;
+        this.size = 14;
     }
 
-    show() {
+    update() {
         const pos = this.body.position;
-        const angle = this.body.angle;
-        push();
-        translate(pos.x, pos.y);
-        fill(this.color);
-        ellipseMode(RADIUS);
-        circle(0, 0, this.r);
-        pop();
+        image(bombSprites[this.frame], pos.x, pos.y, this.size, this.size);
+    }
+
+    blink() {
+        this.size = 14;
+        if (frameCount % 5 == 0) this.frame = (this.frame + 1) % 2;
+    }
+
+    explode() {
+        this.size = 14 * 3;
+        if (frameCount % 5 == 0 && this.frame < 6) this.frame = 2 + (this.frame + 1) % 5;
+    }
+
+    reset() {
+        Body.setPosition(this.body, { x: 200, y: 200 });
+        Body.setSpeed(this.body, 0);
+        this.frame = 0;
+        this.touch = false;
+        this.size = 14;
+    }
+
+    get x() {
+        return this.body.position.x;
+    }
+
+    get y() {
+        return this.body.position.y;
     }
 }
 
@@ -55,15 +75,17 @@ class Sling {
         this.body = Constraint.create({
             pointA: { x: x, y: y },
             bodyB: body,
-            stiffness: 0.02,
+            stiffness: 0.01,
             length: 0
         });
         World.add(world, this.body);
     }
 
-    show() {
+    update() {
         if (this.body.bodyB) {
             stroke(255);
+            alpha(0.5);
+
             const posA = this.body.pointA;
             const posB = this.body.bodyB.position;
             line(posA.x, posA.y, posB.x, posB.y);
@@ -72,11 +94,8 @@ class Sling {
 }
 
 function slingReset() {
-    Body.setPosition(bomb.body, { x: 200, y: 200 });
-    Body.setSpeed(bomb.body, 0);
+    bomb.reset();
     sling.body.bodyB = bomb.body;
-    bomb.color = "green";
-    touch = false;
 }
 
 function preload() {
@@ -86,6 +105,14 @@ function preload() {
 function setup() {
     const canvas = createCanvas(W, H);
     imageMode(CENTER);
+
+    for (let n = 0; n < 2; n++) {
+        bombSprites.push(spritesheet.get(n * 32, 0, 32, 32));
+    }
+
+    for (let n = 0; n <= 4; n++) {
+        bombSprites.push(spritesheet.get(64 + n * 96, 0, 96, 96));
+    }
 
     engine = Engine.create({
         wireFrame: true
@@ -114,9 +141,8 @@ function setup() {
     Events.on(engine, "collisionStart", function (event) {
         let obj = event.pairs[0].bodyB;
 
-        if (obj == bomb.body && !touch) {
-            bomb.color = "orange";
-            touch = true;
+        if (obj == bomb.body && !bomb.touch) {
+            bomb.touch = true;
             setTimeout(() => {
                 slingReset();
             }, 3000);
@@ -126,16 +152,16 @@ function setup() {
 
 function draw() {
     background(0);
-    ground.show();
-    box.show();
-    bomb.show();
-    sling.show();
+    ground.update();
+    box.update();
+    sling.update();
+    bomb.update();
 
-    if (!touch && bomb.body.position.y > 560) {
-        slingReset();
+    if (bomb.touch) {
+        bomb.explode();
     }
 
-    if (touch & frameCount % 100 == 0) {
-        image(spritesheet.get((frameCount % 2) * 32, 0, 32, 32));
+    if (!bomb.touch && bomb.y > 560) {
+        slingReset();
     }
 }
