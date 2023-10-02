@@ -1,7 +1,8 @@
 const W = 950, H = 550;
-const { Engine, Body, Bodies, World, Mouse, MouseConstraint, Constraint, Events, Runner } = Matter;
+const SX = 150, SY = 350;
+const { Engine, Body, Bodies, World, Mouse, MouseConstraint, Constraint, Events, Runner, Vertices } = Matter;
 let engine, world;
-let ground, box, bomb, mConstraint, mouse, sling;
+let ground, box, bomb, mConstraint, mouse, sling, levelImg;
 let bombSprites = [];
 
 class Box {
@@ -56,7 +57,6 @@ class Bomb {
         else {
             this.size = 14 * 4;
             if (frameCount % 3 == 0) {
-                console.log(this.frame);
                 if (this.frame < 5) this.frame++;
                 this.time++;
             }
@@ -64,7 +64,7 @@ class Bomb {
     }
 
     reset() {
-        Body.setPosition(this.body, { x: 200, y: 200 });
+        Body.setPosition(this.body, { x: SX, y: SY });
         Body.setSpeed(this.body, 0);
         this.frame = 0;
         this.touch = false;
@@ -81,21 +81,37 @@ class Bomb {
     }
 }
 
+class Ground {
+    constructor(x, y, img, verts) {
+        this.body = Bodies.fromVertices(x, y, Vertices.fromPath(verts), {
+            isStatic: true
+        }, true);
+        World.add(world, this.body);
+
+        this.img = img;
+    }
+
+    update() {
+        const pos = this.body.position;
+        image(this.img, pos.x - 147, pos.y - 100);
+    }
+}
+
 class Sling {
     constructor(x, y, body) {
         this.body = Constraint.create({
             pointA: { x: x, y: y },
             bodyB: body,
-            stiffness: 0.01,
-            length: 0
+            stiffness: 0.02,
+            length: 0,
         });
         World.add(world, this.body);
     }
 
     update() {
         if (this.body.bodyB) {
-            stroke(255);
-            alpha(0.5);
+            stroke(55);
+            strokeWeight(3);
 
             const posA = this.body.pointA;
             const posB = this.body.bodyB.position;
@@ -111,6 +127,7 @@ function slingReset() {
 
 function preload() {
     spritesheet = loadImage("./assets/sprites.png");
+    levelImg = loadImage("./assets/level1.png");
 }
 
 function setup() {
@@ -131,10 +148,10 @@ function setup() {
     world = engine.world;
     Runner.run(engine);
 
-    ground = new Box(475, 550, 950, 50, true);
+    ground = new Ground(697, 380, levelImg, "112,547 800,549 800,241 785,243 765,233 746,238 728,257 726,292 694,351 680,375 626,376 610,363 587,355 567,349 563,327 543,306 545,238 523,214 497,212 467,214 441,242 441,299 441,330 439,351 397,385 392,325 374,303 340,309 330,340 330,472 317,485 300,499 234,522 179,525 146,533");
     box = new Box(300, 170, 20, 20);
-    bomb = new Bomb(200, 200);
-    sling = new Sling(200, 200, bomb.body);
+    bomb = new Bomb(SX, SY);
+    sling = new Sling(SX, SY, bomb.body);
 
     mouse = Mouse.create(canvas.elt);
 
@@ -157,6 +174,26 @@ function setup() {
             setTimeout(() => {
                 slingReset();
             }, 3000);
+        }
+    });
+
+    const maxLen = 120;
+    Events.on(engine, "beforeUpdate", (event) => {
+        if (sling.body.bodyB) {
+            const dx = sling.body.pointA.x - sling.body.bodyB.position.x;
+            const dy = sling.body.pointA.y - sling.body.bodyB.position.y;
+            const currentLength = Math.sqrt(dx * dx + dy * dy);
+
+            if (currentLength > maxLen) {
+                const angle = Math.atan2(dy, dx);
+                const targetX = sling.body.pointA.x - Math.cos(angle) * maxLen;
+                const targetY = sling.body.pointA.y - Math.sin(angle) * maxLen;
+                Body.setPosition(sling.body.bodyB, { x: targetX, y: targetY }, true);
+            }
+
+            if (sling.body.bodyB.position.x > sling.body.pointA.x) {
+                //Body.setPosition(sling.body.bodyB, { x: sling.body.pointA.x, y: sling.body.bodyB.position.y }, true);
+            }
         }
     });
 
