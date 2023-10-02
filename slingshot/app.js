@@ -36,6 +36,7 @@ class Bomb {
         this.touch = false;
         this.frame = 0;
         this.size = 14;
+        this.time = 0;
     }
 
     update() {
@@ -43,14 +44,23 @@ class Bomb {
         image(bombSprites[this.frame], pos.x, pos.y, this.size, this.size);
     }
 
-    blink() {
-        this.size = 14;
-        if (frameCount % 5 == 0) this.frame = (this.frame + 1) % 2;
-    }
-
     explode() {
-        this.size = 14 * 3;
-        if (frameCount % 5 == 0 && this.frame < 6) this.frame = 2 + (this.frame + 1) % 5;
+        if (this.time == 33) this.frame = 2;
+        if (this.time < 33) {
+            this.size = 14;
+            if (frameCount % 5 == 0) {
+                this.frame = (this.frame + 1) % 2;
+                this.time++;
+            }
+        }
+        else {
+            this.size = 14 * 4;
+            if (frameCount % 3 == 0) {
+                console.log(this.frame);
+                if (this.frame < 5) this.frame++;
+                this.time++;
+            }
+        }
     }
 
     reset() {
@@ -59,6 +69,7 @@ class Bomb {
         this.frame = 0;
         this.touch = false;
         this.size = 14;
+        this.time = 0;
     }
 
     get x() {
@@ -110,7 +121,7 @@ function setup() {
         bombSprites.push(spritesheet.get(n * 32, 0, 32, 32));
     }
 
-    for (let n = 0; n <= 4; n++) {
+    for (let n = 0; n <= 3; n++) {
         bombSprites.push(spritesheet.get(64 + n * 96, 0, 96, 96));
     }
 
@@ -148,6 +159,8 @@ function setup() {
             }, 3000);
         }
     });
+
+    frameRate(60);
 }
 
 function draw() {
