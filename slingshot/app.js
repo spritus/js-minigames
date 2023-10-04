@@ -1,6 +1,6 @@
 const W = 950, H = 550;
 const SX = 150, SY = 350;
-const { Engine, Body, Bodies, World, Mouse, MouseConstraint, Constraint, Events, Runner, Vertices } = Matter;
+const { Engine, Body, Bodies, World, Mouse, MouseConstraint, Constraint, Events, Runner, Vertices, Query } = Matter;
 let engine, world;
 let ground, box, bomb, mConstraint, mouse, sling, levelImg;
 let bombSprites = [];
@@ -195,6 +195,13 @@ function setup() {
                 //Body.setPosition(sling.body.bodyB, { x: sling.body.pointA.x, y: sling.body.bodyB.position.y }, true);
             }
         }
+    });
+
+    Events.on(mConstraint, "startdrag", function (event) {
+        const mPos = event.mouse.position;
+        console.log(event);
+
+
     });
 
     frameRate(60);
