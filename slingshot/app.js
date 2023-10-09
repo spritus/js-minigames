@@ -32,7 +32,7 @@ class Box {
 class Bomb {
     constructor(x, y) {
         this.r = 7;
-        this.body = Bodies.circle(x, y, this.r);
+        this.body = Bodies.circle(x, y, this.r, { collisionFilter: { category: 2 } });
         World.add(world, this.body);
         this.touch = false;
         this.frame = 0;
@@ -70,6 +70,7 @@ class Bomb {
         this.touch = false;
         this.size = 14;
         this.time = 0;
+        this.body.collisionFilter.category = 2;
     }
 
     get x() {
@@ -149,14 +150,15 @@ function setup() {
     Runner.run(engine);
 
     ground = new Ground(697, 380, levelImg, "112,547 800,549 800,241 785,243 765,233 746,238 728,257 726,292 694,351 680,375 626,376 610,363 587,355 567,349 563,327 543,306 545,238 523,214 497,212 467,214 441,242 441,299 441,330 439,351 397,385 392,325 374,303 340,309 330,340 330,472 317,485 300,499 234,522 179,525 146,533");
-    box = new Box(300, 170, 20, 20);
+    box = new Box(350, 170, 20, 20);
     bomb = new Bomb(SX, SY);
     sling = new Sling(SX, SY, bomb.body);
 
     mouse = Mouse.create(canvas.elt);
 
     mConstraint = MouseConstraint.create(engine, {
-        mouse: mouse
+        mouse: mouse,
+        collisionFilter: { mask: 2 }
     });
     World.add(world, mConstraint);
 
@@ -171,9 +173,10 @@ function setup() {
 
         if (obj == bomb.body && !bomb.touch) {
             bomb.touch = true;
+            bomb.body.collisionFilter.category = 1;
             setTimeout(() => {
                 slingReset();
-            }, 3000);
+            }, 2950);
         }
     });
 
@@ -195,13 +198,6 @@ function setup() {
                 //Body.setPosition(sling.body.bodyB, { x: sling.body.pointA.x, y: sling.body.bodyB.position.y }, true);
             }
         }
-    });
-
-    Events.on(mConstraint, "startdrag", function (event) {
-        const mPos = event.mouse.position;
-        console.log(event);
-
-
     });
 
     frameRate(60);
