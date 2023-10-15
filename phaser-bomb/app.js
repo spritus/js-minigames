@@ -13,8 +13,17 @@ class Bombs extends Phaser.Scene {
         const verts = this.matter.verts.fromPath(path);
         this.matter.add.fromVertices(696, 375, verts, { isStatic: true }, true, 0.01, 10);
 
-        const bomb = this.matter.add.image(500, 0, "bomb", 5);
-        bomb.setCircle();
+        this.anims.create({
+            key: "blink",
+            frames: "bomb",
+            frameRate: 15,
+            repeat: -1,
+        });
+
+        const bomb = this.matter.add.sprite(500, 0, "bomb", 5);
+        bomb.setCircle(10);
+        bomb.play("blink");
+        bomb.stop();
     }
 }
 
