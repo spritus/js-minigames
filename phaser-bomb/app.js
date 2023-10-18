@@ -1,6 +1,8 @@
 const W = 950, H = 550;
 
 class Bombs extends Phaser.Scene {
+    bomb;
+
     preload() {
         this.load.image("level1", "./assets/level1.png");
         this.load.spritesheet("bomb", "./assets/sprites.png", { frameWidth: 32, frameHeight: 32, startFrame: 0, endFrame: 1 });
@@ -17,13 +19,17 @@ class Bombs extends Phaser.Scene {
             key: "blink",
             frames: "bomb",
             frameRate: 15,
-            repeat: -1,
+            repeat: 11,
         });
 
-        const bomb = this.matter.add.sprite(500, 0, "bomb", 5);
-        bomb.setCircle(10);
-        bomb.play("blink");
-        bomb.stop();
+        this.bomb = this.matter.add.sprite(530, 0, "bomb");
+        this.bomb.setCircle(10);
+        this.time.addEvent({
+            delay: 3000,
+            callback: () => {
+                this.bomb.play("blink");
+            }
+        });
     }
 }
 
