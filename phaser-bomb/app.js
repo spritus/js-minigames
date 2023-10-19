@@ -5,7 +5,8 @@ class Bombs extends Phaser.Scene {
 
     preload() {
         this.load.image("level1", "./assets/level1.png");
-        this.load.spritesheet("bomb", "./assets/sprites.png", { frameWidth: 32, frameHeight: 32, startFrame: 0, endFrame: 1 });
+        this.load.spritesheet("bomb1", "./assets/sprites.png", { frameWidth: 16, frameHeight: 16, startFrame: 0, endFrame: 1 });
+        this.load.spritesheet("bomb2", "./assets/sprites.png", { frameWidth: 48, frameHeight: 48, startFrame: 1, endFrame: 5 });
     }
 
     create() {
@@ -17,18 +18,39 @@ class Bombs extends Phaser.Scene {
 
         this.anims.create({
             key: "blink",
-            frames: "bomb",
+            frames: "bomb1",
             frameRate: 15,
-            repeat: 11,
+            repeat: 10
         });
 
-        this.bomb = this.matter.add.sprite(530, 0, "bomb");
+        this.anims.create({
+            key: "boom",
+            frames: "bomb2",
+            frameRate: 15,
+            repeat: 0
+        });
+
+        this.bomb = this.matter.add.sprite(200, 300, "bomb1");
         this.bomb.setCircle(10);
-        this.time.addEvent({
+
+        /* this.bomb.on("animationcomplete", (a) => {
+            console.log(a);
+        }); */
+
+        /* this.time.addEvent({
             delay: 3000,
             callback: () => {
-                this.bomb.play("blink");
+                this.bomb.play("boom");
             }
+        }); */
+
+        //this.bomb.body.ignorePointer = true;
+
+        this.matter.add.mouseSpring({
+            bodyB: this.bomb.body,
+            pointA: { x: 200, y: 300 },
+            length: 30,
+            ignorePointer: true
         });
     }
 }
@@ -42,7 +64,7 @@ const game = new Phaser.Game({
     physics: {
         default: "matter",
         matter: {
-            debug: true,
+            //debug: true,
             enableSleeping: true
         }
     },
