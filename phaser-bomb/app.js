@@ -68,7 +68,7 @@ class Bombs extends Phaser.Scene {
         this.constraint = this.matter.add.constraint(this.sling.body, this.bomb.body, 20, 0.02);
         this.matter.add.mouseSpring();
 
-        this.matter.add.circle(200, 300, 50, { isStatic: true });
+        this.matter.add.rectangle(250, 275, 50, 550, { isStatic: true });
 
         this.input.on("pointerup", () => {
             const sPos = that.sling.body.position;
@@ -132,7 +132,7 @@ const game = new Phaser.Game({
     physics: {
         default: "matter",
         matter: {
-            //debug: true,
+            debug: true,
             enableSleeping: true
         }
     },
