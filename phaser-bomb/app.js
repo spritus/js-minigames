@@ -14,6 +14,7 @@ class Bombs extends Phaser.Scene {
         this.load.spritesheet("bomb1", "./assets/sprites.png", { frameWidth: 16, frameHeight: 16, startFrame: 0, endFrame: 1 });
         this.load.spritesheet("bomb2", "./assets/sprites.png", { frameWidth: 48, frameHeight: 48, startFrame: 1, endFrame: 5 });
         this.load.spritesheet("sling", "./assets/sprites.png", { frameWidth: 48, frameHeight: 48, startFrame: 6, endFrame: 6 });
+        this.load.spritesheet("alien", "./assets/sprites.png", { frameWidth: 48, frameHeight: 48, startFrame: 7, endFrame: 7 });
     }
 
     create() {
@@ -45,14 +46,15 @@ class Bombs extends Phaser.Scene {
         this.slingLine1.setLineWidth(2);
         this.slingLine2.setLineWidth(2);
 
+
+        this.sling = this.matter.add.sprite(200, 300, "sling", 0, { isStatic: true, collisionFilter: 0 }).setOrigin(0.2, 0.2);
+        this.alien = this.matter.add.sprite(860, 300, "alien", 0, { isStatic: true });
+        this.alien.setCircle(17).setStatic(true);
         this.bomb = this.matter.add.sprite(200, 300, "bomb1");
         this.bomb.setCircle(10);
         this.bomb.setFixedRotation();
         this.bomb.setFriction(0);
         //this.bomb.setBounce(0.2);
-
-
-        this.sling = this.matter.add.sprite(200, 300, "sling", 0, { isStatic: true, collisionFilter: 0 }).setOrigin(0.2, 0.2);
 
         /* this.bomb.on("animationcomplete", (a) => {
             console.log(a);
@@ -68,15 +70,13 @@ class Bombs extends Phaser.Scene {
         this.constraint = this.matter.add.constraint(this.sling.body, this.bomb.body, 20, 0.02);
         this.matter.add.mouseSpring();
 
-        this.matter.add.rectangle(250, 275, 50, 550, { isStatic: true });
-
         this.input.on("pointerup", () => {
             const sPos = that.sling.body.position;
             const bPos = that.bomb.body.position;
             if (Math.abs(bPos.x - sPos.x) > 30 || Math.abs(bPos.y - sPos.y) > 30) {
+                that.status = true;
                 setTimeout(() => {
                     that.constraint.bodyB = null;
-                    that.status = true;
                     that.slingLine1.setTo(sPos.x, sPos.y, sPos.x + 5, sPos.y + 10);
                     that.slingLine2.setTo(sPos.x + 20, sPos.y, sPos.x + 5, sPos.y + 10);
                     that.bomb.body.ignorePointer = true;
@@ -91,7 +91,7 @@ class Bombs extends Phaser.Scene {
         });
 
         this.matter.world.on("collisionstart", (e, a, b) => {
-            if (b == that.bomb.body && !that.touch) {
+            if (that.status && !that.touch && b == that.bomb.body) {
                 that.bomb.chain(["boom"]);
                 that.bomb.play("blink");
                 that.touch = true;
@@ -102,13 +102,31 @@ class Bombs extends Phaser.Scene {
     update() {
         const sPos = this.sling.body.position;
         const bPos = this.bomb.body.position;
-        if (!this.status) {
-            this.slingLine1.setTo(sPos.x, sPos.y, bPos.x, bPos.y);
-            this.slingLine2.setTo(sPos.x + 20, sPos.y, bPos.x, bPos.y);
-        }
 
         if (!this.touch && this.bomb.body.position.y > 600) {
             this.slingReset();
+        }
+
+        if (!this.status && bPos.x > sPos.x) {
+            this.bomb.setPosition(sPos.x, bPos.y);
+        }
+
+        if (!this.status) {
+            const dx = sPos.x - bPos.x;
+            const dy = sPos.y - bPos.y;
+            const currentLength = Math.sqrt(dx * dx + dy * dy);
+
+            if (currentLength > 100) {
+                const angle = Math.atan2(dy, dx);
+                const targetX = sPos.x - Math.cos(angle) * 100;
+                const targetY = sPos.y - Math.sin(angle) * 100;
+                this.bomb.setPosition(targetX, targetY);
+            }
+        }
+
+        if (!this.status) {
+            this.slingLine1.setTo(sPos.x, sPos.y, bPos.x, bPos.y);
+            this.slingLine2.setTo(sPos.x + 20, sPos.y, bPos.x, bPos.y);
         }
     }
 
@@ -132,7 +150,7 @@ const game = new Phaser.Game({
     physics: {
         default: "matter",
         matter: {
-            debug: true,
+            //debug: true,
             enableSleeping: true
         }
     },
