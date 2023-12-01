@@ -1,6 +1,6 @@
 const W = 950, H = 550;
 
-class Bombs extends Phaser.Scene {
+class Game extends Phaser.Scene {
     bomb;
     sling;
     constraint;
@@ -15,6 +15,8 @@ class Bombs extends Phaser.Scene {
         this.load.spritesheet("bomb2", "./assets/sprites.png", { frameWidth: 48, frameHeight: 48, startFrame: 1, endFrame: 5 });
         this.load.spritesheet("sling", "./assets/sprites.png", { frameWidth: 48, frameHeight: 48, startFrame: 6, endFrame: 6 });
         this.load.spritesheet("alien", "./assets/sprites.png", { frameWidth: 48, frameHeight: 48, startFrame: 7, endFrame: 7 });
+        this.load.spritesheet("btnset", "./assets/sprites.png", { frameWidth: 48, frameHeight: 48, startFrame: 12, endFrame: 12 });
+        this.load.spritesheet("btnexit", "./assets/sprites.png", { frameWidth: 48, frameHeight: 48, startFrame: 13, endFrame: 13 });
     }
 
     create() {
@@ -22,6 +24,32 @@ class Bombs extends Phaser.Scene {
         this.status = false;
 
         this.add.image(150, 0, "level1").setOrigin(0, 0);
+
+        this.matter.world.setBounds(0, 0, W, H, 32, true, true, false, true);
+
+        this.tweens.add({
+            targets: this.cameras.main,
+            y: 500,
+            ease: "Sine.easeInOut",
+            repeat: 0,
+            duration: 500
+        });
+
+        const btnSet = this.add.image(10, 10, "btnset").setOrigin(0, 0).setInteractive();
+        const btnExit = this.add.image(70, 10, "btnexit").setOrigin(0, 0).setInteractive();
+
+        btnSet.on("pointerover", () => {
+            btnSet.setTint(0xff00ff, 55);
+        });
+
+        btnSet.on("pointerout", () => {
+            btnSet.clearTint();
+        });
+
+        btnSet.on("pointerdown", () => {
+            btnSet.setTint(0xff0000);
+        });
+
         this.matter.world.setBounds(0, 0, W, H, true, true, false, true);
         const path = "112,547 800,549 800,241 785,243 765,233 746,238 728,257 726,292 694,351 680,375 626,376 610,363 587,355 567,349 563,327 543,306 545,238 523,214 497,212 467,214 441,242 441,299 441,330 439,351 397,385 392,325 374,303 340,309 330,340 330,472 317,485 300,499 234,522 179,525 146,533";
         const verts = this.matter.verts.fromPath(path);
@@ -43,8 +71,8 @@ class Bombs extends Phaser.Scene {
 
         this.slingLine1 = this.add.line(0, 0, 0, 0, 0, 0, 0xffffff, 0.3).setOrigin(0);
         this.slingLine2 = this.add.line(0, 0, 0, 0, 0, 0, 0xffffff, 0.3).setOrigin(0);
-        this.slingLine1.setLineWidth(2);
-        this.slingLine2.setLineWidth(2);
+        this.slingLine1.setLineWidth(4);
+        this.slingLine2.setLineWidth(4);
 
 
         this.sling = this.matter.add.sprite(200, 300, "sling", 0, { isStatic: true, collisionFilter: 0 }).setOrigin(0.2, 0.2);
@@ -154,5 +182,5 @@ const game = new Phaser.Game({
             enableSleeping: true
         }
     },
-    scene: Bombs
+    scene: Game
 });
