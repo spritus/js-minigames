@@ -48,6 +48,13 @@ class Game extends Phaser.Scene {
 
         btnSet.on("pointerdown", () => {
             btnSet.setTint(0xff0000);
+            this.tweens.add({
+                targets: this.cameras.main,
+                y: 500,
+                ease: "Sine.easeInOut",
+                repeat: 0,
+                duration: 500
+            });
         });
 
         this.matter.world.setBounds(0, 0, W, H, true, true, false, true);
