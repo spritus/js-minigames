@@ -25,11 +25,11 @@ class Game extends Phaser.Scene {
 
         this.add.image(150, 0, "level1").setOrigin(0, 0);
 
-        this.matter.world.setBounds(0, 0, W, H, 32, true, true, false, true);
+        this.matter.world.setBounds(0, 0, W, H * 2, 32, false, false, false, false);
 
         /*this.tweens.add({
             targets: this.cameras.main,
-            y: 500,
+            y: -500,
             ease: "Sine.easeInOut",
             repeat: 0,
             duration: 500
@@ -180,7 +180,7 @@ const game = new Phaser.Game({
     type: Phaser.AUTO,
     width: W,
     height: H,
-    backgroundColor: "#000",
+    backgroundColor: "#c4dedf",
     parent: "game",
     physics: {
         default: "matter",
