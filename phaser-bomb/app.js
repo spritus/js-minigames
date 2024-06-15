@@ -27,13 +27,13 @@ class Game extends Phaser.Scene {
 
         this.matter.world.setBounds(0, 0, W, H * 2, 32, false, false, false, false);
 
-        this.tweens.add({
+        /*this.tweens.add({
             targets: this.cameras.main,
             y: -500,
             ease: "Sine.easeInOut",
             repeat: 0,
             duration: 500
-        });
+        });*/
 
         const btnSet = this.add.image(10, 10, "btnset").setOrigin(0, 0).setInteractive();
         const btnExit = this.add.image(70, 10, "btnexit").setOrigin(0, 0).setInteractive();
