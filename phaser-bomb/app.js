@@ -8,6 +8,7 @@ class Game extends Phaser.Scene {
     slingLine2;
     status;
     touch;
+    menu = false;
 
     preload() {
         this.load.image("level1", "./assets/level1.png");
@@ -39,7 +40,7 @@ class Game extends Phaser.Scene {
         const btnExit = this.add.image(70, 10, "btnexit").setOrigin(0, 0).setInteractive();
 
         btnSet.on("pointerover", () => {
-            btnSet.setTint(0xff00ff, 55);
+            btnSet.setTint(0xaabb00);
         });
 
         btnSet.on("pointerout", () => {
@@ -47,10 +48,10 @@ class Game extends Phaser.Scene {
         });
 
         btnSet.on("pointerdown", () => {
-            btnSet.setTint(0xff0000);
+            this.menu = !this.menu;
             this.tweens.add({
                 targets: this.cameras.main,
-                y: 500,
+                y: this.menu ? 480 : 0,
                 ease: "Sine.easeInOut",
                 repeat: 0,
                 duration: 500
@@ -180,7 +181,7 @@ const game = new Phaser.Game({
     type: Phaser.AUTO,
     width: W,
     height: H,
-    backgroundColor: "#c4dedf",
+    backgroundColor: "#222",
     parent: "game",
     physics: {
         default: "matter",
