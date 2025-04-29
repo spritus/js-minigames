@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body style="background-color: #777;">
+    <div id="screen"></div>
+    <script>
+        const SW = 600;
+        const SH = 400;
+        const AW = 15;
+        const AH = 10;
+        const PS = 40;
+        const hero = { x: 7, y: 0 };
+
+        var map = [
+            [0, 2, 0, 0, 3, 0, 2, 1, 0, 0, 0, 0, 1, 0, 0],
+            [2, 2, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 2, 0, 0, 0, 0, 2, 0, 3, 0, 0, 3, 0, 0, 0],
+            [0, 0, 2, 3, 0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 3, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0],
+            [0, 0, 3, 0, 0, 0, 0, 0, 3, 0, 0, 0, 2, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 2, 0, 0],
+            [0, 0, 3, 3, 0, 3, 2, 2, 2, 2, 2, 2, 2, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0],
+        ];
+
+        const screen = document.getElementById("screen");
+        screen.style.width = SW + "px";
+        screen.style.height = SH + "px";
+        screen.style.margin = "0 auto";
+        screen.style.border = "solid 4px #fff";
+        screen.style.position = "relative";
+        screen.style.backgroundColor = "blue";
+
+        function update() {
+            screen.innerHTML = "";
+            for (let y = 0; y < AH; y++) {
+                for (let x = 0; x < AW; x++) {
+                    if (map[y][x] != 0) {
+                        let col = "#777";
+                        if (map[y][x] == 1) {
+                            col = "yellow";
+                        }
+                        if (map[y][x] == 3) {
+                            col = "red";
+                        }
+                        if (map[y][x] == 4) {
+                            col = "green";
+                        }
+                        body = document.createElement("div");
+                        feats = {
+                            position: "absolute",
+                            left: (x * PS) + "px",
+                            top: (y * PS) + "px",
+                            width: PS + "px",
+                            height: PS + "px",
+                            backgroundColor: col,
+                            boxSizing: "border-box",
+                            border: "solid 2px blue"
+                        };
+                        Object.assign(body.style, feats);
+                        screen.append(body);
+                    }
+                }
+            }
+        }
+
+        window.onkeydown = function (e) {
+            if (e.key == "ArrowUp" && hero.y > 0 && map[hero.y - 1][hero.x] != 2) {
+                if (map[hero.y - 1][hero.x] == 3 && (hero.y - 2 < 0 || map[hero.y - 2][hero.x] > 1)) return;
+                if (map[hero.y - 1][hero.x] == 3 && hero.y - 1 > 0 && map[hero.y - 2][hero.x] == 0) {
+                    map[hero.y - 2][hero.x] = 3;
+                }
+                map[hero.y][hero.x] = 0;
+                hero.y--;
+                map[hero.y][hero.x] = 1;
+            }
+
+            if (e.key == "ArrowDown" && hero.y < AH - 1 && map[hero.y + 1][hero.x] != 2) {
+                if (map[hero.y + 1][hero.x] == 3 && (hero.y + 2 > AH - 1 || map[hero.y + 2][hero.x] > 1)) return;
+                if (map[hero.y + 1][hero.x] == 3 && hero.y + 1 < AH - 1 && map[hero.y + 2][hero.x] == 0) {
+                    map[hero.y + 2][hero.x] = 3;
+                }
+                map[hero.y][hero.x] = 0;
+                hero.y++;
+                map[hero.y][hero.x] = 1;
+            }
+
+            if (e.key == "ArrowLeft" && hero.x > 0 && map[hero.y][hero.x - 1] != 2) {
+                if (map[hero.y][hero.x - 1] == 3 && (hero.x - 2 < 0 || map[hero.y][hero.x - 2] > 1)) return;
+                if (map[hero.y][hero.x - 1] == 3 && hero.x - 1 > 0 && map[hero.y][hero.x - 2] == 0) {
+                    map[hero.y][hero.x - 2] = 3;
+                }
+                map[hero.y][hero.x] = 0;
+                hero.x--;
+                map[hero.y][hero.x] = 1;
+            }
+
+            if (e.key == "ArrowRight" && hero.x < AW - 1 && map[hero.y][hero.x + 1] != 2) {
+                if (map[hero.y][hero.x + 1] == 3 && (hero.x + 2 > AW - 1 || map[hero.y][hero.x + 2] > 1)) return;
+                if (map[hero.y][hero.x + 1] == 3 && hero.x + 1 < AW - 1 && map[hero.y][hero.x + 2] == 0) {
+                    map[hero.y][hero.x + 2] = 3;
+                }
+                map[hero.y][hero.x] = 0;
+                hero.x++;
+                map[hero.y][hero.x] = 1;
+            }
+
+            update();
+        }
+
+        update();
+    </script>
+</body>
+
+</html>

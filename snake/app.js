@@ -51,16 +51,17 @@ function collision(obj1, obj2) {
     return false; // Çarpışma yok
 }
 
-function kuyrukEkle(a) {
-    const kutu = new Kutu(0, 0, "green", screen)
+function kuyrukEkle() {
+    const a = kutular.length;
+    const kutu = new Kutu(0, 0, "green", screen);
     kutu.update = function () {
-        kutu.move(pos[a * 9].x, pos[a * 9].y)
-    }
-    kutular.push(kutu)
+        kutu.move(pos[a * 9]?.x || 0, pos[a * 9]?.y || 0);
+    };
+    kutular.push(kutu);
 }
 
 for (let n = 1; n < 3; n++) {
-    kuyrukEkle(n)
+    kuyrukEkle()
 }
 
 kutular[0].update = function () {
@@ -82,11 +83,11 @@ kutular[0].update = function () {
             break;
     }
     pos.unshift({ x: this.x, y: this.y })
-    if (pos.length > 500) pos.length = 500
+    if (pos.length > kutular.length * 10) pos.length = kutular.length * 10;
 
     if (!gameover && collision(this, apple)) {
         apple.move(Math.round(Math.random() * (SCREENSIZE - 25)), Math.round(Math.random() * (SCREENSIZE - 25)))
-        kuyrukEkle(kutular.length)
+        kuyrukEkle()
         puanDiv.innerText = "Puan:" + (++puan)
     }
 
