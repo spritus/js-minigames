@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Chess</title>
+	<style>
+		body {
+			background-color: gray;
+			font-family: "Arial Narrow";
+		}
+
+		#board {
+			position: relative;
+			width: 760px;
+			height: 760px;
+			border: solid 5px yellowgreen;
+			margin: 20px auto;
+			background-image: url("bg.png");
+		}
+
+		.square {
+			width: 95px;
+			height: 95px;
+			float: left;
+			box-sizing: border-box;
+		}
+
+		.piece {
+			width: 95px;
+			height: 95px;
+			position: absolute;
+			box-sizing: border-box;
+			background-image: url(chess.png);
+		}
+
+		.sel {
+			background-color: rgba(255, 255, 0, 0.5);
+		}
+
+		.last {
+			border: solid 3px yellow;
+		}
+
+		#message {
+			width: 760px;
+			height: 20px;
+			margin: 20px auto;
+			color: yellow;
+			font-weight: bold;
+			font-size: 20px;
+			animation: blink 0.5s steps(5, start) infinite;
+		}
+
+		@keyframes blink {
+			to {
+				visibility: hidden
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<div id="message"></div>
+	<div id="board"></div>
+
+	<script>
+		const PW = 95;
+		const PVALS = [0, 100, 320, 330, 500, 900, 20000, 100, 320, 330, 500, 900, 20000];
+		const STARTFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+		//const STARTFEN = "3r4/pR2N3/2pkb3/5p2/8/2B5/qP3PPP/4R1K1 w - - 1 0";
+		//const STARTFEN = "r1b2k1r/ppppq3/5N1p/4P2Q/4PP2/1B6/PP5P/n2K2R1 w - - 1 0";
+
+		var board, message;
+		var ANIM = false;
+		var SELPIECE = null;
+		var PIECES = [];
+		var MAINGAME;
+		var SQR = new Array(64);
+		var cl;
+
+		function getOnBoard(x, y) {
+			return PIECES.find((p) => p.x == x && p.y == y);
+		}
+
+		function delOnBoard(x, y) {
+			var p = PIECES.findIndex((p) => p.x == x && p.y == y);
+			if (p == -1) return false;
+			PIECES[p].body.remove();
+			PIECES.splice(p, 1);
+		}
+
+		function changeOnBoard(x, y, p) {
+			var p = PIECES.findIndex((p) => p.x == x && p.y == y);
+			if (p == -1) return false;
+			PIECES[p].body.style.backgroundPosition = p * PW + "px";
+		}
+
+		function moveOnBoard(x, y, nx, ny) {
+			var p = PIECES.findIndex((p) => p.x == x && p.y == y);
+			if (p == -1) return false;
+			PIECES[p].x = nx;
+			PIECES[p].y = ny;
+			PIECES[p].bx = nx * PW;
+			PIECES[p].by = ny * PW;
+			PIECES[p].body.style.left = nx * PW + "px";
+			PIECES[p].body.style.top = ny * PW + "px";
+		}
+
+		function showMsg(msg, w = 5000) {
+			if (message.innerHTML != "") clearTimeout(cl);
+			message.innerHTML = msg;
+			cl = setTimeout(() => { message.innerHTML = "" }, w);
+		}
+
+		window.onload = () => {
+			board = document.getElementById("board");
+			message = document.getElementById("message");
+
+			var move = new Audio("move.wav");
+
+			function setPiece(x, y, piece, game) {
+				game.board[x + y * 8] = piece;
+			}
+
+			function getPiece(x, y, game) {
+				return game.board[x + y * 8];
+			}
+
+			function movePiece(x, y, nx, ny, game) {
+				var point = 0;
+				// Passant gecis icin durum
+				game.passant = -1;
+				if (game.board[x + y * 8] == 1 && y == 1 && ny == 3 || game.board[x + y * 8] == 7 && y == 6 && ny == 4) game.passant = x;
+
+				// Passant gecisi olduysa
+				if ([1, 7].includes(game.board[x + y * 8]) && game.board[nx + ny * 8] == 0 && x != nx) game.board[nx + y * 8] = 0;
+
+				// Rok yapildiysa
+				if (game.board[x + y * 8] == 6 && x + y * 8 == 4) {
+					if (x - nx == 2) {
+						game.board[0] = 0;
+						game.board[3] = 4;
+					}
+					else if (x - nx == -2) {
+						game.board[7] = 0;
+						game.board[5] = 4;
+					}
+					game.bQcast = false;
+					game.bKcast = false;
+				}
+
+				if (game.board[x + y * 8] == 12 && x + y * 8 == 60) {
+					if (x - nx == 2) {
+						game.board[56] = 0;
+						game.board[59] = 10;
+					}
+					else if (x - nx == -2) {
+						game.board[63] = 0;
+						game.board[61] = 10;
+					}
+					game.wQcast = false;
+					game.wKcast = false;
+				}
+
+				// Kale oynadiysa roku boz
+				if (x == 0 && y == 0) game.bQcast = false;
+				if (x == 7 && y == 0) game.bKcast = false;
+				if (x == 0 && y == 7) game.wQcast = false;
+				if (x == 7 && y == 7) game.wKcast = false;
+
+				// Piyon yukseltme
+				if (game.board[x + y * 8] == 7 && ny == 0) {
+					game.board[x + y * 8] = 11;
+					point = +800;
+				}
+				if (game.board[x + y * 8] == 1 && ny == 7) {
+					game.board[x + y * 8] = 5;
+					point = +800;
+				}
+
+				// Tas tasima ve sirayi degistirme
+				point += PVALS[game.board[nx + ny * 8]];
+				game.board[nx + ny * 8] = game.board[x + y * 8];
+				game.board[x + y * 8] = 0;
+				game.turn = !game.turn;
+
+				return point;
+			}
+
+			// Kare tehdit/koruma altinda mi?
+			function findThreat(x, y, game, side = true) {
+				// Fil ve vezirler
+				var b = [true, true, true, true];
+				var pMoves = [[1, 1], [-1, 1], [1, -1], [-1, -1]];
+				for (m = 0; m < 4; m++) {
+					for (n = 1; n <= 7; n++)
+						if (b[m] && x + n * pMoves[m][0] >= 0 && y + n * pMoves[m][1] >= 0 && x + n * pMoves[m][0] <= 7 && y + n * pMoves[m][1] <= 7) {
+							if ((side && [3, 5].includes(getPiece(x + n * pMoves[m][0], y + n * pMoves[m][1], game))) || (!side && [9, 11].includes(getPiece(x + n * pMoves[m][0], y + n * pMoves[m][1], game)))) return true;
+							if (getPiece(x + n * pMoves[m][0], y + n * pMoves[m][1], game) > 0) b[m] = false;
+						}
+						else b[m] = false;
+				}
+
+				// Kale ve vezirler
+				b = [true, true, true, true];
+				pMoves = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+				for (m = 0; m < 4; m++) {
+					for (n = 1; n <= 7; n++)
+						if (b[m] && x + n * pMoves[m][0] >= 0 && y + n * pMoves[m][1] >= 0 && x + n * pMoves[m][0] <= 7 && y + n * pMoves[m][1] <= 7) {
+							if ((side && [4, 5].includes(getPiece(x + n * pMoves[m][0], y + n * pMoves[m][1], game))) || (!side && [10, 11].includes(getPiece(x + n * pMoves[m][0], y + n * pMoves[m][1], game)))) return true;
+							if (getPiece(x + n * pMoves[m][0], y + n * pMoves[m][1], game) > 0) b[m] = false;
+						}
+						else b[m] = false;
+				}
+
+				// Atlar
+				var pMoves = [[1, 2], [-1, 2], [1, -2], [-1, -2], [2, 1], [-2, 1], [2, -1], [-2, -1]];
+				for (nm of pMoves)
+					if (x + nm[0] >= 0 && y + nm[1] >= 0 && x + nm[0] <= 7 && y + nm[1] <= 7)
+						if (side && getPiece(x + nm[0], y + nm[1], game) == 2 || !side && getPiece(x + nm[0], y + nm[1], game) == 8) return true;
+
+				// Piyonlar
+				if (side && y - 1 >= 0 && (x + 1 <= 7 && getPiece(x + 1, y - 1, game) == 1 || x - 1 >= 0 && getPiece(x - 1, y - 1, game) == 1)) return true;
+				if (!side && y + 1 <= 7 && (x + 1 <= 7 && getPiece(x + 1, y + 1, game) == 7 || x - 1 >= 0 && getPiece(x - 1, y + 1, game) == 7)) return true;
+
+				// Sahlar
+				var pMoves = [[1, 1], [-1, 1], [1, -1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]];
+				for (m = 0; m < 8; m++)
+					if (x + pMoves[m][0] >= 0 && y + pMoves[m][1] >= 0 && x + pMoves[m][0] <= 7 && y + pMoves[m][1] <= 7)
+						if (side && getPiece(x + pMoves[m][0], y + pMoves[m][1], game) == 6 || !side && getPiece(x + pMoves[m][0], y + pMoves[m][1], game) == 12) return true;
+
+				return false;
+			}
+
+			// Gecerli hamleleri bul
+			function legalMoves(x, y, game) {
+				var moves = [];
+				var pie = getPiece(x, y, game);
+
+				switch (pie) {
+					case 1: // Siyah piyon hamleleri
+						if (y < 7 && getPiece(x, y + 1, game) == 0) moves.push([x, y + 1]);
+						if (y == 1 && getPiece(x, y + 1, game) == 0 && getPiece(x, y + 2, game) == 0) moves.push([x, y + 2]);
+						if (y < 7 && x > 0 && getPiece(x - 1, y + 1, game) > 6) moves.push([x - 1, y + 1]);
+						if (y < 7 && x < 7 && getPiece(x + 1, y + 1, game) > 6) moves.push([x + 1, y + 1]);
+						if (y == 4 && x > 0 && game.passant == x - 1) moves.push([x - 1, y + 1]);
+						if (y == 4 && x < 7 && game.passant == x + 1) moves.push([x + 1, y + 1]);
+						break;
+
+					case 7: // Beyaz piyon hamleleri
+						if (y > 0 && getPiece(x, y - 1, game) == 0) moves.push([x, y - 1]);
+						if (y == 6 && getPiece(x, y - 1, game) == 0 && getPiece(x, y - 2, game) == 0) moves.push([x, y - 2]);
+						if (y > 0 && x > 0 && getPiece(x - 1, y - 1, game) > 0 && getPiece(x - 1, y - 1, game) < 7) moves.push([x - 1, y - 1]);
+						if (y > 0 && x < 7 && getPiece(x + 1, y - 1, game) > 0 && getPiece(x + 1, y - 1, game) < 7) moves.push([x + 1, y - 1]);
+						if (y == 3 && x > 0 && game.passant == x - 1) moves.push([x - 1, y - 1]);
+						if (y == 3 && game.passant == x + 1) moves.push([x + 1, y - 1]);
+						break;
+
+					case 2: // Siyah at hamleleri
+						var pMoves = [[1, 2], [-1, 2], [1, -2], [-1, -2], [2, 1], [-2, 1], [2, -1], [-2, -1]];
+						for (nm of pMoves)
+							if (x + nm[0] >= 0 && y + nm[1] >= 0 && x + nm[0] <= 7 && y + nm[1] <= 7 && (getPiece(x + nm[0], y + nm[1], game) == 0 || getPiece(x + nm[0], y + nm[1], game) > 6))
+								moves.push([x + nm[0], y + nm[1]]);
+						break;
+
+					case 8: // Beyaz at hamleleri
+						var pMoves = [[1, 2], [-1, 2], [1, -2], [-1, -2], [2, 1], [-2, 1], [2, -1], [-2, -1]];
+						for (nm of pMoves)
+							if (x + nm[0] >= 0 && y + nm[1] >= 0 && x + nm[0] <= 7 && y + nm[1] <= 7 && getPiece(x + nm[0], y + nm[1], game) < 7)
+								moves.push([x + nm[0], y + nm[1]]);
+						break;
+
+					case 3: // Siyah fil hamleleri
+					case 4: // Siyah kale hamleleri
+					case 5: // Siyah vezir hamleleri
+						var b = [true, true, true, true, true, true, true, true];
+						var pMoves = [[1, 1], [-1, 1], [1, -1], [-1, -1]];
+						var ds = 4;
+						if (pie == 4) {
+							pMoves = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+						}
+						if (pie == 5) {
+							pMoves = [[1, 1], [-1, 1], [1, -1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]];
+							ds = 8;
+						}
+
+						for (m = 0; m < ds; m++) {
+							for (n = 1; n <= 7; n++)
+								if (b[m] && x + n * pMoves[m][0] >= 0 && y + n * pMoves[m][1] >= 0 && x + n * pMoves[m][0] <= 7 && y + n * pMoves[m][1] <= 7 && (getPiece(x + n * pMoves[m][0], y + n * pMoves[m][1], game) == 0 || getPiece(x + n * pMoves[m][0], y + n * pMoves[m][1], game) > 6)) {
+									moves.push([x + n * pMoves[m][0], y + n * pMoves[m][1]]);
+									if (getPiece(x + n * pMoves[m][0], y + n * pMoves[m][1], game) > 6) b[m] = false;
+								}
+								else b[m] = false;
+						}
+						break;
+
+					case 9:  // Beyaz fil hamleleri
+					case 10: // Beyaz kale hamleleri
+					case 11: // Beyaz vezir hamleleri
+						var b = [true, true, true, true, true, true, true, true];
+						var pMoves = [[1, 1], [-1, 1], [1, -1], [-1, -1]];
+						var ds = 4;
+						if (pie == 10) {
+							pMoves = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+						}
+						if (pie == 11) {
+							pMoves = [[1, 1], [-1, 1], [1, -1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]];
+							ds = 8;
+						}
+
+						for (m = 0; m < ds; m++) {
+							for (n = 1; n <= 7; n++)
+								if (b[m] && x + n * pMoves[m][0] >= 0 && y + n * pMoves[m][1] >= 0 && x + n * pMoves[m][0] <= 7 && y + n * pMoves[m][1] <= 7 && getPiece(x + n * pMoves[m][0], y + n * pMoves[m][1], game) < 7) {
+									moves.push([x + n * pMoves[m][0], y + n * pMoves[m][1]]);
+									if (getPiece(x + n * pMoves[m][0], y + n * pMoves[m][1], game) > 0) b[m] = false;
+								}
+								else b[m] = false;
+						}
+						break;
+
+					case 6: // Siyah sah hamleleri
+						var pMoves = [[1, 1], [-1, 1], [1, -1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]];
+						for (m = 0; m < 8; m++)
+							if (x + pMoves[m][0] >= 0 && y + pMoves[m][1] >= 0 && x + pMoves[m][0] <= 7 && y + pMoves[m][1] <= 7 && (getPiece(x + pMoves[m][0], y + pMoves[m][1], game) == 0 || getPiece(x + pMoves[m][0], y + pMoves[m][1], game) > 6))
+								moves.push([x + pMoves[m][0], y + pMoves[m][1]]);
+
+						// Siyah sah rok kontrolu
+						if (game.bKcast && x == 4 && y == 0 && getPiece(7, 0, game) == 4 && getPiece(5, 0, game) == 0 && getPiece(6, 0, game) == 0 && !findThreat(4, 0, game, false) && !findThreat(5, 0, game, false))
+							moves.push([6, 0]);
+
+						if (game.bQcast && x == 4 && y == 0 && getPiece(0, 0, game) == 4 && getPiece(3, 0, game) == 0 && getPiece(2, 0, game) == 0 && getPiece(1, 0, game) == 0 && !findThreat(4, 0, game, false) && !findThreat(3, 0, game, false))
+							moves.push([2, 0]);
+						break;
+
+					case 12: // Beyaz sah hamleleri
+						var pMoves = [[1, 1], [-1, 1], [1, -1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]];
+						for (m = 0; m < 8; m++)
+							if (x + pMoves[m][0] >= 0 && y + pMoves[m][1] >= 0 && x + pMoves[m][0] <= 7 && y + pMoves[m][1] <= 7 && getPiece(x + pMoves[m][0], y + pMoves[m][1], game) < 7)
+								moves.push([x + pMoves[m][0], y + pMoves[m][1]]);
+
+						// Beyaz sah rok kontrolu
+						if (game.wKcast && x == 4 && y == 7 && getPiece(7, 7, game) == 10 && getPiece(5, 7, game) == 0 && getPiece(6, 7, game) == 0 && !findThreat(4, 7, game, true) && !findThreat(5, 7, game, true))
+							moves.push([6, 7]);
+
+						if (game.wQcast && x == 4 && y == 7 && getPiece(0, 7, game) == 10 && getPiece(3, 7, game) == 0 && getPiece(2, 7, game) == 0 && getPiece(1, 7, game) == 0 && !findThreat(4, 7, game, true) && !findThreat(3, 7, game, true))
+							moves.push([2, 7]);
+						break;
+				}
+
+				var legals = [];
+				var tempGame = new Game();
+
+				// Hamleye engel sah tehdidi var mi?
+				for (mv of moves) {
+					tempGame.board = game.board.slice(0);
+					movePiece(x, y, mv[0], mv[1], tempGame);
+					var kp = tempGame.board.indexOf(pie > 6 ? 12 : 6);
+					if (!findThreat(kp % 8, Math.floor(kp / 8), tempGame, pie > 6)) legals.push("" + mv[0] + mv[1]);
+				}
+
+				return legals;
+			}
+
+			// Gecerli hamle var mi?
+			function isExistMove(game, side) {
+				for (var s in game.board) {
+					var p = game.board[s];
+					if ((side && p > 6 || !side && p > 0 && p < 7) && legalMoves(s % 8, Math.floor(s / 8), game).length > 0) return true;
+				}
+				return false;
+			}
+
+			// Tum gecerli hamleler
+			function allExistMoves(game, side) {
+				var moves = [];
+				for (var s in game.board) {
+					var p = game.board[s];
+					if (side && p > 6 || !side && p > 0 && p < 7)
+						for (mv of legalMoves(s % 8, Math.floor(s / 8), game)) moves.push([s % 8, Math.floor(s / 8), parseInt(mv[0]), parseInt(mv[1])]);
+				}
+				return moves;
+			}
+
+			function bestMove(game, moves, side) {
+				var tempGame = new Game();
+				var bm = [];
+				var best = 0;
+				for (mv of moves) {
+					tempGame.board = game.board.slice(0);
+					var point = movePiece(mv[0], mv[1], mv[2], mv[3], tempGame);
+					if (point >= best) {
+						best = point;
+						bm = mv.splice(0);
+					}
+				}
+				return bm;
+			}
+
+			document.body.onclick = () => {
+				for (var cell of board.children)
+					cell.classList.remove("sel");
+				SELPIECE = null;
+			}
+
+			// Oyun sinifi
+			class Game {
+				constructor(board = []) {
+					this.wQcast = true;
+					this.wKcast = true;
+					this.bQcast = true;
+					this.bKcast = true;
+					this.turn = true;
+					this.passant = -1;
+					this.board = board;
+					if (board.length == 0) for (var n = 0; n < 64; n++) board[n] = 0;
+				}
+			}
+
+			MAINGAME = new Game();
+
+			// Ekranda tas sinifi
+			class Piece {
+				constructor(x, y, piece) {
+					setPiece(x, y, piece, MAINGAME);
+					this.x = x;
+					this.y = y;
+					this.piece = piece;
+					this.side = piece > 6;
+					this.bx = x * PW;
+					this.by = y * PW;
+					this.body = document.createElement("div");
+					this.body.className = "piece";
+					this.body.style.backgroundPosition = (piece * PW) + "px";
+					this.body.style.left = this.bx + "px";
+					this.body.style.top = this.by + "px";
+					this.body.onclick = (e) => {
+						e.stopPropagation();
+						if (SELPIECE != this && SELPIECE != null) {
+							SQR[this.x + this.y * 8].click();
+							return;
+						}
+						if (SELPIECE == this) {
+							this.body.classList.remove("sel");
+							SELPIECE = null;
+						}
+						else if (SELPIECE != null && SELPIECE.side != this.side) {
+							SELPIECE.move(this.x, this.y);
+							SELPIECE.body.classList.remove("sel");
+							SELPIECE = null;
+						}
+						else if (MAINGAME.turn == this.side) {
+							for (var cell of board.children)
+								cell.classList.remove("sel");
+							this.body.classList.add("sel");
+							SELPIECE = this;
+						}
+					}
+					board.appendChild(this.body);
+				}
+
+				move(x, y) {
+					var old = getOnBoard(x, y);
+
+					// Passant olduysa tahtaya yansit
+					if ([1, 7].includes(getPiece(this.x, this.y, MAINGAME)) && getPiece(x, y, MAINGAME) == 0 && (this.x != x))
+						delOnBoard(x, this.y);
+
+					movePiece(this.x, this.y, x, y, MAINGAME);
+
+					this.body.style.zIndex = 100;
+
+					// Tas suruklenme animasyonu
+					this.anim = setInterval(() => {
+						ANIM = true;
+						const d = 10;
+						const dx = (x * PW - this.bx) / d;
+						const dy = (y * PW - this.by) / d;
+						this.bx = this.bx + dx;
+						this.by = this.by + dy;
+						this.body.style.left = this.bx + "px";
+						this.body.style.top = this.by + "px";
+
+						// Animasyon bittiyse
+						if (x * PW == Math.round(this.bx) && y * PW == Math.round(this.by)) {
+							clearInterval(this.anim);
+							ANIM = false;
+							this.body.style.zIndex = 0;
+
+							delOnBoard(x, y);
+
+							// Rok olduysa tahtaya yansit
+							if (this.piece == 6 && this.x - x == -2)
+								moveOnBoard(7, 0, 5, 0);
+
+							if (this.piece == 6 && this.x - x == 2)
+								moveOnBoard(0, 0, 3, 0);
+
+							if (this.piece == 12 && this.x - x == -2)
+								moveOnBoard(7, 7, 5, 7);
+
+							if (this.piece == 12 && this.x - x == 2)
+								moveOnBoard(0, 7, 3, 7);
+
+							// Piyon yukseldiyse tahtaya yansit
+							if (this.piece == 7 && y == 0) {
+								this.piece = 11;
+								this.body.style.backgroundPosition = (11 * PW) + "px";
+							}
+							if (this.piece == 1 && y == 7) {
+								this.piece = 5;
+								this.body.style.backgroundPosition = (5 * PW) + "px";
+							}
+
+							// Sah cekildi mi?
+							var kp = MAINGAME.board.indexOf(MAINGAME.turn ? 12 : 6);
+							if (findThreat(kp % 8, Math.floor(kp / 8), MAINGAME, MAINGAME.turn)) {
+								if (isExistMove(MAINGAME, MAINGAME.turn)) showMsg(MAINGAME.turn ? "Siyah şah çekti" : "Beyaz şah çekti");
+								else showMsg("Şah Mat! " + (MAINGAME.turn ? "Siyah kazandı" : "Beyaz Kazandı"), 10000);
+							}
+
+							for (var elm of SQR) elm.classList.remove("last");
+							SQR[x + y * 8].classList.add("last");
+							SQR[this.x + this.y * 8].classList.add("last");
+
+							this.x = x;
+							this.y = y;
+							move.play();
+
+							// Debug
+							//for(var C in SQR) SQR[C].innerText=MAINGAME.board[C];
+						}
+					}, 7);
+				}
+			}
+
+			function setFen(fen) {
+				var pcs = ["p", "n", "b", "r", "q", "k", "P", "N", "B", "R", "Q", "K"];
+				var parts = fen.split(" ");
+				var err = "Hatalı FEN notasyonu!";
+				if (parts.length != 6) {
+					showMsg(err);
+					return;
+				}
+
+				PIECES.forEach((p) => { p.body.remove() });
+				PIECES.slice(0);
+
+				for (var n = 2; n <= 7; n++) {
+					var s = "";
+					for (var a = 0; a < n; a++) s += "1";
+					parts[0] = parts[0].split(n).join(s);
+				}
+
+				rows = parts[0].split("/");
+				if (rows.length > 8) {
+					showMsg(err);
+					return;
+				}
+
+				rows.forEach((row, rn) => {
+					row.split("").forEach((cell, cn) => {
+						if (pcs.includes(cell) || !isNaN(cell)) {
+							if (isNaN(cell)) PIECES.push(new Piece(cn, rn, pcs.indexOf(cell) + 1));
+						}
+						else {
+							showMsg(err);
+							return;
+						}
+					});
+				});
+
+				MAINGAME.turn = parts[1] == "w";
+
+				MAINGAME.bKcast = parts[2].search("k") > -1;
+				MAINGAME.bQcast = parts[2].search("q") > -1;
+				MAINGAME.wKcast = parts[2].search("K") > -1;
+				MAINGAME.wQcast = parts[2].search("Q") > -1;
+
+				MAINGAME.passant = (parts[3].length == 2 ? 97 - parts[3].charCodeAt(0) : 0);
+			}
+
+			setFen(STARTFEN);
+
+			var b = false;
+			for (let n = 0; n <= 63; n++) {
+				let square = document.createElement("div");
+				square.className = "square";
+				square.x = n % 8;
+				square.y = Math.floor(n / 8);
+				square.onclick = function (e) {
+					if (ANIM) return;
+					if (MAINGAME.turn && SELPIECE != null && legalMoves(SELPIECE.x, SELPIECE.y, MAINGAME).includes("" + square.x + square.y)) {
+						SELPIECE.move(square.x, square.y);
+						var bm = bestMove(MAINGAME, allExistMoves(MAINGAME, false), false);
+						//var bs=Math.floor(Math.random()*bm.length);
+						if (bm.length > 0) setTimeout(() => { getOnBoard(bm[0], bm[1]).move(bm[2], bm[3]) }, 1000);
+					}
+					SELPIECE = null;
+					for (cell of board.children)
+						cell.classList.remove("sel");
+				}
+				if (n % 8 == 0) b = !b;
+				square.style.backgroundColor = (n % 2 == (b ? 1 : 0) ? "rgba(100, 100, 100, 0.5)" : "rgba(255, 255, 255, 0.5)");
+				board.appendChild(square);
+				SQR[n] = square;
+			}
+		}
+	</script>
+</body>
+
+</html>

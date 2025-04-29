@@ -92,7 +92,48 @@ kutular[0].update = function () {
 
     for (const kutu in kutular) {
         if (!gameover && (this.x <= 0 || this.x >= SCREENSIZE - 25 || this.y <= 0 || this.y >= SCREENSIZE - 25 || kutu > 1 && collision(this, kutular[kutu]))) {
-            alert("Oyun bitti, Puanın " + puan)
+            //alert("Oyun bitti, Puanın " + puan)
+            const go = document.createElement("div")
+            go.innerText = "Oyun bitti Puanın " + puan
+            Object.assign(go.style, {
+                fontFamily: "sans-serif",
+                position: "absolute",
+                top: "-50px",
+                left: "50%",
+                transform: "translate(-50%,-50%)",
+                fontSize: "30px",
+                color: "white",
+                fontWeight: "600",
+                pointerEvents: "none"
+            })
+            screen.append(go)
+
+            const explode = document.createElement("div")
+            Object.assign(explode.style, {
+                position: "absolute",
+                width: "5px",
+                height: "5px",
+                top: (kutular[0].y + 12) + "px",
+                left: (kutular[0].x + 12) + "px",
+                backgroundColor: "red",
+                borderRadius: "50%",
+                transform: "translate(-50%,-50%)"
+            })
+            screen.append(explode)
+
+            let top = -50
+            let exp = 5
+            const gotimer = setInterval(() => {
+                top += 10
+                exp += 3
+                if (top >= 300) clearInterval(gotimer)
+                go.style.top = top + "px"
+                explode.style.width = exp + "px"
+                explode.style.height = exp + "px"
+                explode.style.opacity = (100 - exp) / 100
+                for (let kutu of kutular) kutu.body.style.opacity = (100 - exp) / 100
+            }, 16)
+
             gameover = true
         }
     }
