@@ -136,8 +136,8 @@
 						if (count % 10 == 0) {
 							this.ox = this.x
 							this.oy = this.y
-							//this.x += Math.sin(count / 100) * 5
-							this.y += Math.cos(count / 100) * 3 + 0.1
+							this.x += Math.sin(count / 100) * 5
+							//this.y += Math.cos(count / 100) * 3
 							this.body.style.left = this.x + "px"
 							this.body.style.top = this.y + "px"
 						}
@@ -214,7 +214,7 @@
 						this.x = this.x + (p.x - p.ox) / 10
 						if (this.y + this.h >= p.y && this.y + this.h < p.y + 3) this.y = p.y - this.h
 					}
-					if (p.solid && this != p && this.x < p.x + p.w && this.x + this.w > p.x && oy < p.y + p.h && oy + this.h > p.y) {
+					if (p.solid && this != p && this.x < p.x + p.w && this.x + this.w > p.x && oy < p.y + p.h && oy + this.h > p.y + 3) {
 						this.dir = !this.dir
 						this.body.style.transform = this.dir ? "scaleX(-1)" : "scaleX(1)"
 						this.x = this.x + (p.x - p.ox) / 10
