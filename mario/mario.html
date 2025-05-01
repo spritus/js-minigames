@@ -136,8 +136,8 @@
 						if (count % 10 == 0) {
 							this.ox = this.x
 							this.oy = this.y
-							this.x += Math.sin(count / 100) * 5
-							//this.y += Math.cos(count / 100) * 3 + 0.1
+							//this.x += Math.sin(count / 100) * 5
+							this.y += Math.cos(count / 100) * 3 + 0.1
 							this.body.style.left = this.x + "px"
 							this.body.style.top = this.y + "px"
 						}
