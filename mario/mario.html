@@ -212,13 +212,13 @@
 						this.y = oy
 						if (this.g > 0) this.g = 0
 						this.x = this.x + (p.x - p.ox) / 10
-						this.y = p.y - p.h
+						if (this.y + this.h >= p.y && this.y + this.h < p.y + 3) this.y = p.y - this.h
 					}
 					if (p.solid && this != p && this.x < p.x + p.w && this.x + this.w > p.x && oy < p.y + p.h && oy + this.h > p.y) {
 						this.dir = !this.dir
 						this.body.style.transform = this.dir ? "scaleX(-1)" : "scaleX(1)"
 						this.x = this.x + (p.x - p.ox) / 10
-						this.y = p.y - p.h
+						if (this.y + this.h >= p.y && this.y + this.h < p.y + 3) this.y = p.y - this.h
 					}
 				}
 
@@ -329,7 +329,7 @@
 							}
 
 							this.x = this.x + (p.x - p.ox) / 10
-							this.y = p.y - p.h
+							if (this.y + this.h >= p.y && this.y + this.h < p.y + 3) this.y = p.y - this.h
 						}
 
 						if (p.role == 20) {
@@ -374,7 +374,7 @@
 
 		pieces.push(new Ground(100, 500, 1, 64, 64))
 		pieces.push(new Ground(164, 532, 2, 900))
-		pieces.push(new Ground(50, 320, 3, 296))
+		pieces.push(new Ground(60, 320, 3, 296))
 		pieces.push(new Ground(1264, 532, 0, 500))
 		pieces.push(new Ground(364, 415, 0, 500))
 		pieces.push(new Coin(700, 490))
