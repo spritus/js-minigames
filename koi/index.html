@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KOI</title>
+</head>
+
+<body style="background:gray">
+    <script>
+        const screen = document.createElement("div");
+        Object.assign(screen.style, {
+            width: "100%",
+            maxWidth: "600px",
+            height: "95vh",
+            borderRadius: "10px",
+            overflow: "hidden",
+            position: "relative",
+            margin: "0 auto",
+            outline: "solid 4px white",
+            backgroundColor: "#7ad",
+            backgroundImage: "url(pool.jpg)",
+            backgroundSize: "cover"
+        })
+        document.body.appendChild(screen);
+        const SW = screen.offsetWidth;
+        const SH = screen.offsetHeight;
+
+        class Koi {
+            constructor(x, y) {
+                this.x = this.fx = x
+                this.y = this.fy = y
+                this.t = 0
+                this.body = document.createElement("div")
+                Object.assign(this.body.style, {
+                    position: "absolute",
+                    width: "55px",
+                    height: "100px",
+                    left: this.x + "px",
+                    top: this.y + "px",
+                    cursor: "pointer",
+                    backgroundImage: "url(koi.png)"
+                })
+                this.shadow = document.createElement("div")
+                Object.assign(this.shadow.style, {
+                    position: "absolute",
+                    width: "55px",
+                    height: "99px",
+                    left: this.x + "px",
+                    top: this.y + "px",
+                    backgroundImage: "url(shadow.png)"
+                })
+                screen.appendChild(this.shadow);
+                screen.appendChild(this.body);
+            }
+
+            move(nx, ny) {
+                var ox = this.x
+                var oy = this.y
+                if (!isNaN(nx)) this.x = nx
+                if (!isNaN(ny)) this.y = ny
+
+                this.rota = Math.atan2(this.y - oy, this.x - ox) * 180 / Math.PI + 90
+                this.body.style.transform = "rotate(" + this.rota + "deg)"
+                this.shadow.style.transform = "rotate(" + this.rota + "deg)"
+
+                this.body.style.top = this.y + "px"
+                this.body.style.left = this.x + "px"
+                this.shadow.style.top = (this.y + 50) + "px"
+                this.shadow.style.left = (this.x + 20) + "px"
+            }
+
+            update() {
+                this.t++
+                if (Math.random() < 0.001 || Math.abs(this.fx - this.x) < 20 && Math.abs(this.fy - this.y) < 20) {
+                    this.fx = Math.floor(Math.random() * (SW - 50))
+                    this.fy = Math.floor(Math.random() * (SH - 200))
+                }
+                const d = 300
+                const dx = (this.fx - this.x) / d
+                const dy = (this.fy - this.y) / d
+                this.move(this.x + dx, this.y + dy)
+            }
+        }
+
+        class Timer {
+            constructor() {
+                this.body = document.createElement("div")
+                this.time = 100
+                Object.assign(this.body.style, {
+                    position: "absolute",
+                    width: "100px",
+                    height: "100px",
+                    left: "50%",
+                    bottom: "10px",
+                    borderRadius: "40%",
+                    margin: "-50px 0 0 -50px",
+                    backgroundColor: "#abe048",
+                    border: "solid 4px white",
+                    color: "#fca",
+                    fontWeight: "bold",
+                    fontSize: "25px",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    textAlign: "center",
+                    wordBreak: "break-all",
+                    textShadow: "-1px -1px 0 #555, 1px -1px 0 #555, -1px 1px 0 #555, 1px 1px 0 #555"
+
+                });
+                screen.appendChild(this.body)
+                this.body.innerHTML = "●●●●●●"
+            }
+
+            start() {
+                this.time = 0
+                this.interval = setInterval(() => {
+                    if (this.time >= 100) {
+                        clearInterval(this.interval)
+                    }
+                    else this.time++
+                    this.body.style.background = `conic-gradient(from 0deg, #abe048 ${this.time}%, white ${this.time + 1}%, white 100%)`
+                }, 100)
+            }
+        }
+
+        const timer = new Timer()
+
+        const kois = [];
+        for (let i = 0; i < 6; i++) {
+            const koi = new Koi(Math.random() * (SW - 50), Math.random() * (SH - 200))
+            koi.body.onclick = () => {
+                if (timer.time == 100)
+                    timer.start()
+            }
+            kois.push(koi)
+        }
+
+        function update() {
+            for (const koi of kois) koi.update()
+            requestAnimationFrame(update)
+        }
+        update()
+    </script>
+</body>
+
+</html>
