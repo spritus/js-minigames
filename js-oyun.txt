@@ -20,3 +20,4 @@
 - 3d bomberman
 - Asansör çanta
 - Sokak hayvanı toplama
+- Etraftaki sayıları arttırmaca domino
