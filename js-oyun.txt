@@ -21,3 +21,4 @@
 - Asansör çanta
 - Sokak hayvanı toplama
 - Etraftaki sayıları arttırmaca domino
+- Snake tıklamalı ve yön tuşları ile rotate
