@@ -14,7 +14,7 @@
 - fight
 - lemmings
 - evolution sim
-- turn based strategy
+- turn based strategy (araziye göre zorluk)
 - raycast
 - bomberman
 - 3d bomberman

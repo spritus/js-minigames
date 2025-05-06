@@ -106,8 +106,8 @@
                     alignItems: "center",
                     textAlign: "center",
                     wordBreak: "break-all",
-                    textShadow: "-1px -1px 0 #555, 1px -1px 0 #555, -1px 1px 0 #555, 1px 1px 0 #555"
-
+                    textShadow: "-1px -1px 0 #555, 1px -1px 0 #555, -1px 1px 0 #555, 1px 1px 0 #555",
+                    cursor: "default"
                 });
                 screen.appendChild(this.body)
                 this.body.innerHTML = "●●●●●●"
@@ -125,17 +125,86 @@
             }
         }
 
-        const timer = new Timer()
+        function msg(m, callBack) {
+            const div = document.createElement("div")
+            Object.assign(div.style, {
+                position: "absolute",
+                width: "70%",
+                minHeight: "100px",
+                overflowY: "auto",
+                left: "50%",
+                bottom: "50%",
+                padding: "20px",
+                borderRadius: "10px",
+                transform: "translate(-50%,50%)",
+                backgroundColor: "rgba(0,0,0,0.4)",
+                border: "solid 4px #000",
+                color: "#fff",
+                fontWeight: "bold",
+                fontSize: "25px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                textAlign: "center",
+                wordBreak: "break-all",
+                cursor: "pointer",
+                fontFamily: "Comic sans MS",
+                zoom: "0.1"
+            })
+            screen.appendChild(div)
 
-        const kois = [];
+            div.innerHTML = m
+
+            let n = 0
+            const intv = setInterval(() => {
+                div.style.zoom = (n += .1)
+                if (n >= 1) clearInterval(intv)
+            }, 20)
+
+            div.onclick = () => {
+                let n = 0
+                const intv = setInterval(() => {
+                    div.style.zoom = 1 - (n += .1)
+                    if (n >= 1) {
+                        clearInterval(intv)
+                        div.remove()
+                        callBack()
+                    }
+                }, 20)
+            }
+        }
+
+        const timer = new Timer()
+        let count = 3
+        let level = 1
+        let game = false
+        const kois = []
+
         for (let i = 0; i < 6; i++) {
             const koi = new Koi(Math.random() * (SW - 50), Math.random() * (SH - 200))
             koi.body.onclick = () => {
-                if (timer.time == 100)
+                if (game && timer.time == 100)
                     timer.start()
             }
             kois.push(koi)
         }
+
+        const banner = new Image()
+        banner.src = "banner.png"
+        banner.style.width = "100%"
+        screen.appendChild(banner)
+
+        msg("Hey!<br>Koi balıkları çok acıktı<br>Beslemeye hazır mısın?<br><br>Hazırsan tıkla!", () => {
+            game = true
+            let n = 0
+            const intv = setInterval(() => {
+                banner.style.opacity = 1 - (n += .1)
+                if (n >= 1) {
+                    clearInterval(intv)
+                    banner.remove()
+                }
+            }, 50)
+        })
 
         function update() {
             for (const koi of kois) koi.update()
