@@ -9,6 +9,7 @@
 
 <body style="background:gray">
     <script>
+        document.body.style.userSelect = "none"
         const screen = document.createElement("div");
         Object.assign(screen.style, {
             width: "100%",
@@ -20,6 +21,7 @@
             margin: "0 auto",
             outline: "solid 4px white",
             backgroundColor: "#7ad",
+            fontFamily: "Comic sans MS",
             backgroundImage: "url(pool.jpg)",
             backgroundSize: "cover"
         })
@@ -110,7 +112,7 @@
                     cursor: "default"
                 });
                 screen.appendChild(this.body)
-                this.body.innerHTML = "●●●●●●"
+                this.body.innerHTML = "●●●●"
             }
 
             start() {
@@ -121,7 +123,7 @@
                     }
                     else this.time++
                     this.body.style.background = `conic-gradient(from 0deg, #abe048 ${this.time}%, white ${this.time + 1}%, white 100%)`
-                }, 70)
+                }, 50)
             }
         }
 
@@ -148,7 +150,6 @@
                 textAlign: "center",
                 wordBreak: "break-all",
                 cursor: "pointer",
-                fontFamily: "Comic sans MS",
                 zoom: "0.1"
             })
             screen.appendChild(div)
@@ -175,12 +176,15 @@
         }
 
         const timer = new Timer()
-        let count = 3
+        let count = 4
         let level = 1
         let game = false
         const kois = []
 
-        for (let i = 0; i < 6; i++) {
+        const sound = new Audio("relax.mp3")
+        sound.loop = true
+
+        for (let i = 0; i < count; i++) {
             const koi = new Koi(Math.random() * (SW - 50), Math.random() * (SH - 200))
             koi.body.onclick = () => {
                 if (game && timer.time == 100)
@@ -189,12 +193,23 @@
             kois.push(koi)
         }
 
+        const lvl = document.createElement("div")
+        Object.assign(lvl.style, {
+            position: "absolute",
+            right: "10px",
+            top: "10px",
+            color: "#fff",
+            fontWeight: "bold",
+            fontSize: "25px"
+        });
+        screen.appendChild(lvl)
+
         const banner = new Image()
         banner.src = "banner.png"
         banner.style.width = "100%"
         screen.appendChild(banner)
 
-        msg("Hey!<br>Koi balıkları çok acıktı<br>Beslemeye hazır mısın?<br><br>Hazırsan tıkla!", () => {
+        msg("Hey!<br>Koi balıkları acıktı<br>Beslemeye hazır mısın?<br><br>Hazırsan tıkla!", () => {
             game = true
             let n = 0
             const intv = setInterval(() => {
@@ -202,6 +217,8 @@
                 if (n >= 1) {
                     clearInterval(intv)
                     banner.remove()
+                    sound.play()
+                    lvl.innerHTML = "Bölüm " + level
                 }
             }, 50)
         })
