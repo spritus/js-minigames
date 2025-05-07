@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <title>MEMO</title>
+    <style>
+        @font-face {
+            font-family: motion;
+            src: url(MotionControl-Bold.otf);
+        }
+    </style>
+</head>
+
+<body style="background:gray">
+    <script>
+        const screen = document.createElement("div");
+        Object.assign(screen.style, {
+            width: "100%",
+            maxWidth: "600px",
+            height: "95vh",
+            borderRadius: "10px",
+            overflow: "hidden",
+            position: "relative",
+            margin: "0 auto",
+            outline: "solid 4px white",
+            backgroundColor: "#b58a97",
+            fontSize: "40px",
+            fontFamily: "motion"
+        })
+        document.body.appendChild(screen);
+        const SW = screen.offsetWidth
+        const SH = screen.offsetHeight
+
+
+        function msg({ msg = "", x = "50%", y = "70%", callback = () => { } } = {}) {
+            const div = document.createElement("div")
+            Object.assign(div.style, {
+                position: "absolute",
+                width: "70%",
+                minHeight: "100px",
+                overflowY: "auto",
+                left: x,
+                top: y,
+                padding: "20px",
+                borderRadius: "10px",
+                transform: "translate(-50%,50%)",
+                backgroundColor: "rgba(0,0,0,0.4)",
+                border: "solid 4px #000",
+                color: "#fff",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                textAlign: "center",
+                wordBreak: "break-all",
+                cursor: "pointer",
+                zoom: "0.1"
+            })
+            screen.appendChild(div)
+
+            div.innerHTML = msg
+
+            anime({
+                targets: div,
+                zoom: 1,
+                duration: 500
+            })
+
+            div.onclick = () => {
+                anime({
+                    targets: div,
+                    zoom: 0.1,
+                    duration: 500,
+                    complete: () => {
+                        div.remove()
+                        callback()
+                    }
+                })
+            }
+        }
+
+        const banner = new Image()
+        banner.src = "banner.png"
+        banner.style.width = "100%"
+        screen.appendChild(banner)
+
+        msg({
+            msg: "Merhaba",
+            callback: () => {
+                anime({ targets: banner, marginTop: "-600px", duration: 1000 })
+            }
+        })
+
+    </script>
+</body>
+
+</html>
