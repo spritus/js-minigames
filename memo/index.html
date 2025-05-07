@@ -40,7 +40,7 @@
             Object.assign(div.style, {
                 position: "absolute",
                 width: "70%",
-                minHeight: "100px",
+                minHeight: "50px",
                 overflowY: "auto",
                 left: x,
                 top: y,
@@ -87,7 +87,7 @@
         screen.appendChild(banner)
 
         msg({
-            msg: "Merhaba",
+            msg: "Oyuna Basla",
             callback: () => {
                 anime({ targets: banner, marginTop: "-600px", duration: 1000 })
             }
