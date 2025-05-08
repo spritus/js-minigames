@@ -35,7 +35,7 @@
         document.body.appendChild(screen)
         const SW = screen.offsetWidth
         const SH = screen.offsetHeightlet
-        let level = 1
+        let level = 3
 
         function msg({ msg = "", x = "50%", y = "70%", callback = () => { } } = {}) {
             const div = document.createElement("div")
@@ -96,7 +96,7 @@
             bottom: "10px",
             color: "#fff",
             fontWeight: "bold",
-            fontSize: "35px",
+            fontSize: "100px",
             left: "50%",
             transform: "translate(-50%)"
         })
@@ -118,15 +118,16 @@
         screen.appendChild(area)
 
         const cards = []
-        for (let i = 0; i < 40; i++) {
+        for (let i = 0; i < 36; i++) {
             const card = document.createElement("div")
             card.className = "card"
             Object.assign(card.style, {
-                width: "15%",
+                width: "12%",
                 height: "60px",
                 margin: "2px",
                 borderRadius: "10px",
-                backgroundColor: "#fff",
+                backgroundColor: "#a98",
+                cursor: "pointer",
                 border: "solid 4px #000"
             })
             area.appendChild(card)
@@ -143,7 +144,18 @@
         })
 
         function start() {
-            lvl.innerHTML = "Bölüm " + level
+            lvl.innerHTML = level
+            setInterval(() => {
+                for (card of cards)
+                    //cards[card].style.backgroundColor = Math.random() > .8 ? "#fe0" : "#a98"
+                    anime({
+                        targets: card,
+                        backgroundColor: Math.random() > .8 ? "#fc0" : "#a98",
+                        duration: 4000
+                    })
+
+            }, 200)
+
         }
 
     </script>
