@@ -33,9 +33,12 @@
             fontFamily: "motion"
         })
         document.body.appendChild(screen)
+
         const SW = screen.offsetWidth
         const SH = screen.offsetHeightlet
         let level = 3
+        let game=false
+        let opened=0
 
         function msg({ msg = "", x = "50%", y = "70%", callback = () => { } } = {}) {
             const div = document.createElement("div")
@@ -145,17 +148,7 @@
 
         function start() {
             lvl.innerHTML = level
-            setInterval(() => {
-                for (card of cards)
-                    //cards[card].style.backgroundColor = Math.random() > .8 ? "#fe0" : "#a98"
-                    anime({
-                        targets: card,
-                        backgroundColor: Math.random() > .8 ? "#fc0" : "#a98",
-                        duration: 4000
-                    })
-
-            }, 200)
-
+            
         }
 
     </script>
