@@ -36,9 +36,10 @@
 
         const SW = screen.offsetWidth
         const SH = screen.offsetHeightlet
-        let level = 3
+        let level = 1
         let game = false
         let opened = 0
+        let hs = localStorage.getItem("memobox-hs") || 0
 
         function msg({ msg = "", x = "50%", y = "70%", callback = () => { } } = {}) {
             const div = document.createElement("div")
@@ -96,7 +97,7 @@
         const lvl = document.createElement("div")
         Object.assign(lvl.style, {
             position: "absolute",
-            bottom: "10px",
+            bottom: "30px",
             color: "#fff",
             fontWeight: "bold",
             fontSize: "100px",
@@ -104,6 +105,20 @@
             transform: "translate(-50%)"
         })
         screen.appendChild(lvl)
+
+        const high = document.createElement("div")
+        Object.assign(high.style, {
+            position: "absolute",
+            color: "#ff0",
+            fontWeight: "bold",
+            fontSize: "40px",
+            bottom: "10px",
+            left: "50%",
+            transform: "translate(-50%)"
+        });
+        screen.appendChild(high)
+        high.innerHTML = "Best: " + hs
+
 
         const area = document.createElement("div")
         Object.assign(area.style, {
@@ -121,7 +136,7 @@
         screen.appendChild(area)
 
         const cards = []
-        for (let i = 0; i < 25; i++) {
+        for (let i = 0; i < 30; i++) {
             const card = document.createElement("div")
             card.className = "card"
             card.value = false
@@ -171,6 +186,11 @@
                 }
                 else if (opened == level - 1) {
                     level++
+                    if (level > hs) {
+                        hs = level
+                        high.innerHTML = "Best: " + hs
+                        localStorage.setItem("memobox-hs", hs)
+                    }
                     start()
                 }
                 else opened++
