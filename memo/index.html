@@ -37,8 +37,8 @@
         const SW = screen.offsetWidth
         const SH = screen.offsetHeightlet
         let level = 3
-        let game=false
-        let opened=0
+        let game = false
+        let opened = 0
 
         function msg({ msg = "", x = "50%", y = "70%", callback = () => { } } = {}) {
             const div = document.createElement("div")
@@ -121,18 +121,60 @@
         screen.appendChild(area)
 
         const cards = []
-        for (let i = 0; i < 36; i++) {
+        for (let i = 0; i < 25; i++) {
             const card = document.createElement("div")
             card.className = "card"
+            card.value = false
             Object.assign(card.style, {
-                width: "12%",
-                height: "60px",
+                width: "15%",
+                height: "70px",
                 margin: "2px",
                 borderRadius: "10px",
                 backgroundColor: "#a98",
                 cursor: "pointer",
                 border: "solid 4px #000"
             })
+
+            card.open = () => {
+                card.style.backgroundColor = "#0ef"
+            }
+
+            card.select = () => {
+                card.style.backgroundColor = "#fa0"
+            }
+
+            card.fail = () => {
+                card.style.backgroundColor = "#f20"
+            }
+            card.close = () => {
+                card.style.backgroundColor = "#b58a97"
+            }
+
+            card.set = () => {
+                card.open()
+                card.value = true
+            }
+            card.reset = () => {
+                card.close()
+                card.value = false
+            }
+
+            card.onclick = () => {
+                if (!game) return
+                card.select()
+                if (!card.value) {
+                    card.fail()
+                    game = false
+                    //msg({ msg: "Ahh! Yanlıs Kart<br>Oyun Bitti", y: "50%" })
+                    if (level > 1) level--
+                    start()
+                }
+                else if (opened == level - 1) {
+                    level++
+                    start()
+                }
+                else opened++
+            }
             area.appendChild(card)
             cards.push(card)
         }
@@ -148,7 +190,23 @@
 
         function start() {
             lvl.innerHTML = level
-            
+            opened = 0
+            game = false
+            setTimeout(() => {
+                cards.map(c => c.reset())
+                for (let n = 0; n < level; n++) {
+                    const i = Math.floor(Math.random() * cards.length)
+                    if (cards[i].value) {
+                        n--
+                        continue
+                    }
+                    cards[i].set()
+                }
+                setTimeout(() => {
+                    cards.map(c => c.close())
+                    game = true
+                }, 2000)
+            }, 600)
         }
 
     </script>
