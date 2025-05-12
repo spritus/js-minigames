@@ -123,7 +123,7 @@
         const area = document.createElement("div")
         Object.assign(area.style, {
             position: "absolute",
-            width: "80%",
+            width: "90%",
             overflowY: "auto",
             display: "flex",
             flexWrap: "wrap",
@@ -202,7 +202,7 @@
         msg({
             msg: "Oyuna Basla",
             callback: () => {
-                anime({ targets: banner, easing: "easeOutCirc", marginTop: "-600px", duration: 1000 })
+                anime({ targets: banner, easing: "easeOutCirc", marginTop: "-700px", duration: 1000 })
                 anime({ targets: area, easing: "easeOutCirc", marginTop: "0px", duration: 1000 })
                 start()
             }
