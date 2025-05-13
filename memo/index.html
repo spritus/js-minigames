@@ -154,10 +154,6 @@
                 card.style.backgroundColor = "#0ef"
             }
 
-            card.select = () => {
-                card.style.backgroundColor = "#fa0"
-            }
-
             card.fail = () => {
                 card.style.backgroundColor = "#f20"
             }
@@ -176,7 +172,7 @@
 
             card.onclick = () => {
                 if (!game) return
-                card.select()
+                card.open()
                 if (!card.value) {
                     card.fail()
                     game = false
