@@ -74,7 +74,7 @@
                 duration: 500
             })
 
-            div.onclick = () => {
+            div.pointerdown = () => {
                 anime({
                     targets: div,
                     zoom: 2,
@@ -154,10 +154,6 @@
                 card.style.backgroundColor = "#0ef"
             }
 
-            card.select = () => {
-                card.style.backgroundColor = "#fa0"
-            }
-
             card.fail = () => {
                 card.style.backgroundColor = "#f20"
             }
@@ -174,9 +170,9 @@
                 card.value = false
             }
 
-            card.onclick = () => {
+            card.pointerdown = () => {
                 if (!game) return
-                card.select()
+                card.open()
                 if (!card.value) {
                     card.fail()
                     game = false
