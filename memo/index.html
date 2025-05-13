@@ -74,7 +74,7 @@
                 duration: 500
             })
 
-            div.pointerdown = () => {
+            div.onpointerdown = () => {
                 anime({
                     targets: div,
                     zoom: 2,
@@ -170,7 +170,7 @@
                 card.value = false
             }
 
-            card.pointerdown = () => {
+            card.onpointerdown = () => {
                 if (!game) return
                 card.open()
                 if (!card.value) {
