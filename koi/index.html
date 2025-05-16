@@ -34,7 +34,9 @@
                 this.x = this.fx = x
                 this.y = this.fy = y
                 this.t = 0
+                this.feed = false
                 this.body = document.createElement("div")
+                this.namnam = 0
                 Object.assign(this.body.style, {
                     position: "absolute",
                     width: "55px",
@@ -42,7 +44,8 @@
                     left: this.x + "px",
                     top: this.y + "px",
                     cursor: "pointer",
-                    backgroundImage: "url(koi.png)"
+                    backgroundImage: "url(koi.png)",
+                    zIndex: 2
                 })
                 this.shadow = document.createElement("div")
                 Object.assign(this.shadow.style, {
@@ -51,10 +54,26 @@
                     height: "99px",
                     left: this.x + "px",
                     top: this.y + "px",
-                    backgroundImage: "url(shadow.png)"
+                    backgroundImage: "url(shadow.png)",
+                    zIndex: 1
+                })
+
+                this.food = document.createElement("div")
+                Object.assign(this.food.style, {
+                    position: "absolute",
+                    width: "6px",
+                    height: "6px",
+                    borderRadius: "50%",
+                    left: "50%",
+                    top: "-50px",
+                    transform: "translateX(-50%)",
+                    backgroundColor: "#fa8",
+                    border: "solid 3px #555",
+                    display: "none"
                 })
                 screen.appendChild(this.shadow);
                 screen.appendChild(this.body);
+                this.body.appendChild(this.food);
             }
 
             move(nx, ny) {
@@ -66,6 +85,12 @@
                 this.rota = Math.atan2(this.y - oy, this.x - ox) * 180 / Math.PI + 90
                 this.body.style.transform = "rotate(" + this.rota + "deg)"
                 this.shadow.style.transform = "rotate(" + this.rota + "deg)"
+                if (this.namnam > 0) {
+                    this.food.style.display = "block"
+                    this.food.style.top = -(this.namnam * 5) + "px"
+                    this.namnam--
+                }
+                else this.food.style.display = "none"
 
                 this.body.style.top = this.y + "px"
                 this.body.style.left = this.x + "px"
@@ -108,7 +133,7 @@
                     alignItems: "center",
                     textAlign: "center",
                     wordBreak: "break-all",
-                    textShadow: "-1px -1px 0 #555, 1px -1px 0 #555, -1px 1px 0 #555, 1px 1px 0 #555",
+                    textShadow: "-2px -2px 0 #555, 2px -2px 0 #555, -2px 2px 0 #555, 2px 2px 0 #555",
                     cursor: "default"
                 });
                 screen.appendChild(this.body)
@@ -123,7 +148,7 @@
                     }
                     else this.time++
                     this.body.style.background = `conic-gradient(from 0deg, #abe048 ${this.time}%, white ${this.time + 1}%, white 100%)`
-                }, 50)
+                }, 40)
             }
         }
 
@@ -143,14 +168,14 @@
                 border: "solid 4px #000",
                 color: "#fff",
                 fontWeight: "bold",
-                fontSize: "25px",
+                fontSize: "20px",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
                 textAlign: "center",
-                wordBreak: "break-all",
                 cursor: "pointer",
-                zoom: "0.1"
+                zoom: "0.1",
+                zIndex: 3
             })
             screen.appendChild(div)
 
@@ -162,7 +187,7 @@
                 if (n >= 1) clearInterval(intv)
             }, 20)
 
-            div.onclick = () => {
+            div.onpointerdown = () => {
                 let n = 0
                 const intv = setInterval(() => {
                     div.style.zoom = 1 - (n += .1)
@@ -176,21 +201,55 @@
         }
 
         const timer = new Timer()
-        let count = 4
+        let count = 3
+        let feeded = 0
         let level = 1
         let game = false
-        const kois = []
+        let kois = []
 
         const sound = new Audio("relax.mp3")
         sound.loop = true
 
-        for (let i = 0; i < count; i++) {
-            const koi = new Koi(Math.random() * (SW - 50), Math.random() * (SH - 200))
-            koi.body.onclick = () => {
-                if (game && timer.time == 100)
-                    timer.start()
+        function start() {
+            kois.map(k => k.body.remove() || k.shadow.remove())
+            kois = []
+            timer.body.innerHTML = "●".repeat(count)
+            game = true
+            lvl.innerHTML = "Bölüm " + level
+            for (let i = 0; i < count; i++) {
+                const koi = new Koi(Math.random() * (SW - 50), Math.random() * (SH - 200))
+                koi.body.onpointerdown = () => {
+                    if (!game || timer.time < 100) return
+                    if (koi.feed) {
+                        msg("Ahh! Bu koi zaten beslendi", () => {
+                            level = 1
+                            count = 4
+                            feeded = 0
+                            start()
+                        })
+                        return
+                    }
+                    timer.body.innerHTML = "●".repeat(count - feeded - 1)
+
+                    koi.namnam = 10
+
+                    if (feeded >= count - 1) {
+                        game = false
+                        msg("Tebrikler! Bu bölüm bitti<br>Bir sonraki bölüm icin tıkla!", () => {
+                            level++
+                            count++
+                            feeded = 0
+                            start()
+                        })
+                    }
+                    else {
+                        koi.feed = true
+                        feeded++
+                        timer.start()
+                    }
+                }
+                kois.push(koi)
             }
-            kois.push(koi)
         }
 
         const lvl = document.createElement("div")
@@ -209,16 +268,18 @@
         banner.style.width = "100%"
         screen.appendChild(banner)
 
+        for (let i = 0; i < 10; i++)
+            kois.push(new Koi(Math.random() * (SW - 50), Math.random() * (SH - 200)))
+
         msg("Hey!<br>Koi balıkları acıktı<br>Beslemeye hazır mısın?<br><br>Hazırsan tıkla!", () => {
-            game = true
             let n = 0
             const intv = setInterval(() => {
                 banner.style.opacity = 1 - (n += .1)
                 if (n >= 1) {
                     clearInterval(intv)
                     banner.remove()
-                    sound.play()
-                    lvl.innerHTML = "Bölüm " + level
+                    start()
+                    //sound.play()
                 }
             }, 50)
         })
